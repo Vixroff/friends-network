@@ -13,6 +13,7 @@ djangorestframework = "^3.14.0"
 psycopg2-binary = "^2.9.6"
 django-filter = "^23.2"
 Markdown = "^3.4.3"
+djangorestframework-simplejwt = "^5.2.2"
 
 
 [build-system]
