@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "vk-test-case"
+version = "0.1.0"
+description = ""
+authors = ["Maksim Vikhrov <maxvihr@yandex.ru>"]
+readme = "README.md"
+packages = [{include = "vk_test_case"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+Django = "^4.2.1"
+djangorestframework = "^3.14.0"
+psycopg2-binary = "^2.9.6"
+django-filter = "^23.2"
+Markdown = "^3.4.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
