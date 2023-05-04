@@ -4,9 +4,9 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = str(os.getenv('SECRET_KEY'))
+SECRET_KEY = str(os.getenv('SECRET_KEY', default='lol'))
 
-DEBUG = int(os.getenv('DEBUG'))
+DEBUG = int(os.getenv('DEBUG', default=1))
 
 ALLOWED_HOSTS = ['*']
 
@@ -54,11 +54,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": str(os.getenv('POSTGRES_DB')),
-        "USER": str(os.getenv('POSTGRES_USER')),
-        "PASSWORD": str(os.getenv('POSTGRES_PASSWORD')),
-        "HOST": str(os.getenv('POSTGRES_HOST')),
-        "PORT": int(os.getenv('POSTGRES_PORT')),
+        "NAME": str(os.getenv('POSTGRES_DB', default='database')),
+        "USER": str(os.getenv('POSTGRES_USER', default='user')),
+        "PASSWORD": str(os.getenv('POSTGRES_PASSWORD', default='password')),
+        "HOST": str(os.getenv('POSTGRES_HOST', default='db')),
+        "PORT": int(os.getenv('POSTGRES_PORT', default=5432)),
     }
 }
 

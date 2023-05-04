@@ -1,10 +1,11 @@
 from django.urls import path, include
 
-from .views import RegistrationView
+from .views import RegistrationView, FriendshipRequestView
 
 
 urlpatterns = [
-    path('v1/auth/', include([
+    path('auth/', include([
         path('registration/', RegistrationView.as_view(), name='registration'),
     ])),
+    path('requests/', FriendshipRequestView.as_view(), name='friendship-requests')
 ]
