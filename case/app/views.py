@@ -4,7 +4,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 
-from .models import User, FriendshipRequest
+from .models import User, FriendshipRelation
 from .serializers import UserSerializer, FriendshipSerializer
 
 
@@ -14,7 +14,7 @@ class RegistrationView(generics.CreateAPIView):
     permission_classes=(AllowAny,)
 
 
-class FriendshipRequestView(
+class FriendshipRelationView(
     generics.ListAPIView,
     generics.CreateAPIView,
 ):
@@ -23,7 +23,7 @@ class FriendshipRequestView(
     serializer_class = FriendshipSerializer
 
     def get_queryset(self):
-        queryset = FriendshipRequest.objects.filter(
+        queryset = FriendshipRelation.objects.filter(
             Q(user_sender=self.request.user)|Q(user_reciever=self.request.user),
             accept=None
         ).select_related('user_sender', 'user_reciever')
@@ -31,11 +31,11 @@ class FriendshipRequestView(
     
     def perform_create(self, serializer):
         try:
-            mutual_request = FriendshipRequest.objects.get(
+            mutual_request = FriendshipRelation.objects.get(
                 user_sender=self.request.data.get('user_reciever'),
                 user_reciever=self.request.user
             )
-        except FriendshipRequest.DoesNotExist:
+        except FriendshipRelation.DoesNotExist:
             serializer.save(user_sender=self.request.user)
         else:
             mutual_request.delete()
