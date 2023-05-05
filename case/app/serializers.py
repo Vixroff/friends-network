@@ -32,12 +32,6 @@ class FriendshipRequestSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if self.context['request'].user == attrs['user_reciever']:
             raise ValidationError('Impossible to make friendship request to yourself!')
-        if FriendshipRelation.objects.filter(
-            user_sender=attrs['user_reciever'],
-            user_reciever=self.context['request'].user,
-            accept=True
-        ).exists():
-            raise ValidationError('Yours friendship already exists!')
         return attrs
     
     def to_representation(self, instance):
@@ -49,7 +43,10 @@ class FriendshipRequestSerializer(serializers.ModelSerializer):
 
 class FriendshipRequestAcceptSerializer(serializers.ModelSerializer):
 
+    access = serializers.BooleanField(
+        required=True,
+    )
+
     class Meta:
         model = FriendshipRelation
-        fields = ()
-
+        fields = ('accept',)
