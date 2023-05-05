@@ -15,13 +15,12 @@ class RegistrationView(generics.CreateAPIView):
 
 
 class FriendshipRequestView(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    generics.GenericAPIView,
+    generics.ListAPIView,
+    generics.CreateAPIView,
 ):
-    permission_classes = (IsAuthenticated,)
     filter_backends = (SearchFilter,)
     search_fields = ('=user_sender__username', '=user_reciever__username')
+    serializer_class = FriendshipSerializer
 
     def get_queryset(self):
         queryset = FriendshipRequest.objects.filter(
@@ -37,7 +36,7 @@ class FriendshipRequestView(
                 user_reciever=self.request.user
             )
         except FriendshipRequest.DoesNotExist:
-            return super().perform_create(self, serializer)
+            serializer.save(user_sender=self.request.user)
         else:
             mutual_request.delete()
-            serializer.save(accept=True)
+            serializer.save(user_sender=self.request.user, accept=True)

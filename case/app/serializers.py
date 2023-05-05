@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
+from rest_framework.validators import ValidationError, UniqueTogetherValidator
 from django.utils.translation import gettext_lazy as _
 
 from .models import User, FriendshipRequest
@@ -29,7 +29,7 @@ class FriendshipSerializer(serializers.ModelSerializer):
             'user_sender': {'default': serializers.CurrentUserDefault()},
             'accept': {'default': None},
         }
-    
+
     def validate(self, attrs):
         if self.context['request'].user == attrs['user_reciever']:
             raise ValidationError(_('Impossible to make friendship request to yourself'))
@@ -38,6 +38,7 @@ class FriendshipSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation['user_sender'] = UserSerializer(instance.user_sender).data
-        representation['user_reciever'] = UserSerializer(instance.user_sender).data
+        representation['user_reciever'] = UserSerializer(instance.user_reciever).data
+
         return representation
 
