@@ -6,7 +6,11 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
-from .views import RegistrationView, FriendshipRequestView
+from .views import (
+    RegistrationView,
+    FriendshipRequestView,
+    FriendshipAcceptView,
+)
 
 
 urlpatterns = [
@@ -16,5 +20,6 @@ urlpatterns = [
         path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
         path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     ])),
-    path('requests/', FriendshipRequestView.as_view(), name='friendship_requests')
+    path('requests/', FriendshipRequestView.as_view(), name='friendship_requests'),
+    path('requests/<uuid:pk>', FriendshipAcceptView.as_view(), name='accept_friendship' )
 ]

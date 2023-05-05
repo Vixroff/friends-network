@@ -2,14 +2,18 @@ from django.db.models import Q
 from rest_framework import generics
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
-from rest_framework.exceptions import ValidationError
 
 from .models import User, FriendshipRelation
-from .serializers import UserSerializer, FriendshipRequestSerializer
+from .serializers import (
+    UserSerializer, 
+    FriendshipRequestSerializer,
+    FriendshipAcceptSerializer,
+)
 
 
 class RegistrationView(generics.CreateAPIView):
     """View provides User registration."""
+    
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes=(AllowAny,)
@@ -60,14 +64,16 @@ class FriendshipRequestView(
             
 
 
-class FriendshipRequestAcceptView(generics.UpdateAPIView):
+class FriendshipAcceptView(generics.UpdateAPIView):
     """View provides rejecting or accepting incoming friendship request."""
+
+    serializer_class = FriendshipAcceptSerializer
 
     def get_queryset(self):
         queryset = FriendshipRelation.objects.filter(
             user_reciever=self.request.user,
             accept=None,
-        )
+        ).select_related('user_sender')
         return queryset
     
 

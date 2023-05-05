@@ -41,12 +41,21 @@ class FriendshipRequestSerializer(serializers.ModelSerializer):
         return representation
 
 
-class FriendshipRequestAcceptSerializer(serializers.ModelSerializer):
+class FriendshipAcceptSerializer(serializers.ModelSerializer):
 
-    access = serializers.BooleanField(
+    accept = serializers.BooleanField(
         required=True,
     )
 
     class Meta:
         model = FriendshipRelation
         fields = ('accept',)
+
+    def to_representation(self, instance):
+        representation = {
+            'id': instance.id,
+            'friend': UserSerializer(instance.user_sender),
+            'friendship': 'Accepted' if instance.accept is True else 'Rejected',
+        }
+        return representation
+
