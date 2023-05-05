@@ -6,7 +6,7 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
-from .views import RegistrationView, FriendshipRelationView
+from .views import RegistrationView, FriendshipRequestView
 
 
 urlpatterns = [
@@ -16,5 +16,5 @@ urlpatterns = [
         path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
         path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     ])),
-    path('requests/', FriendshipRelationView.as_view(), name='friendship-requests')
+    path('requests/', FriendshipRequestView.as_view(), name='friendship_requests')
 ]

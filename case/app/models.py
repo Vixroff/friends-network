@@ -29,7 +29,7 @@ class User(AbstractUser, BaseModel):
 class FriendshipRelation(BaseModel):
     user_sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requests_out')
     user_reciever = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requests_in')
-    accept = models.BooleanField(null=True, blank=True)
+    accept = models.BooleanField(null=True, blank=True, default=None)
 
     class Meta:
         unique_together = ('user_sender', 'user_reciever')
