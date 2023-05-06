@@ -30,8 +30,8 @@ class FriendshipRequestView(
     serializer_class = FriendshipRequestSerializer
 
     def get_queryset(self):
-        flag_in = self.request.query_params.get('incoming')
-        flag_out = self.request.query_params.get('outgoing')
+        flag_in = 'incoming' in self.request.query_params
+        flag_out = 'outgoing' in self.request.query_params
         if (flag_in and flag_out) or (not flag_in and not flag_out):
             queryset = FriendshipRelation.objects.filter(
                 Q(user_sender=self.request.user)|Q(user_recipier=self.request.user),
