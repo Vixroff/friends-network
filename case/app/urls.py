@@ -15,7 +15,7 @@ from .views import (
 )
 
 
-router = SimpleRouter()
+router = SimpleRouter(trailing_slash=False)
 router.register(r'friendships', FriendshipView, basename='friendships')
 
 
