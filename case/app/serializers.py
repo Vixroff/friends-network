@@ -20,10 +20,29 @@ class UserSerializer(serializers.ModelSerializer):
 
 class FriendshipRequestSerializer(serializers.ModelSerializer):
 
+    request_friendship_to_user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        write_only=True,
+        source='user_reciever',
+        label='Friendship request to user',
+    )
+
     class Meta:
         model = FriendshipRelation
-        fields = ('id', 'user_sender', 'user_reciever', 'created_at', 'accept')
-        read_only_fields = ('user_sender', 'created_at', 'accept')
+        fields = (
+            'id',
+            'user_sender',
+            'user_reciever',
+            'created_at',
+            'accept',
+            'request_friendship_to_user',
+        )
+        read_only_fields = (
+            'user_sender',
+            'user_reciever',
+            'created_at',
+            'accept',
+        )
         extra_kwargs = {
             'user_sender': {'default': serializers.CurrentUserDefault()},
             'accept': {'default': None},
