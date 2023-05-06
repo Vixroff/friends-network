@@ -1,5 +1,6 @@
 from django.urls import path, include
 
+from rest_framework.routers import SimpleRouter
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -10,7 +11,12 @@ from .views import (
     RegistrationView,
     FriendshipRequestView,
     FriendshipAcceptView,
+    FriendshipView,
 )
+
+
+router = SimpleRouter()
+router.register(r'friendships', FriendshipView, basename='friendships')
 
 
 urlpatterns = [
@@ -21,5 +27,6 @@ urlpatterns = [
         path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     ])),
     path('requests/', FriendshipRequestView.as_view(), name='friendship_requests'),
-    path('requests/<uuid:pk>', FriendshipAcceptView.as_view(), name='accept_friendship' )
+    path('requests/<uuid:pk>', FriendshipAcceptView.as_view(), name='accept_friendship'),
+    path(include(router.urls))
 ]

@@ -1,5 +1,5 @@
 from django.db.models import Q
-from rest_framework import generics
+from rest_framework import generics, viewsets, mixins
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny
 
@@ -61,7 +61,6 @@ class FriendshipRequestView(
         else:
             mutual_request.delete()
             serializer.save(user_sender=self.request.user, accept=True)
-            
 
 
 class FriendshipAcceptView(generics.UpdateAPIView):
@@ -77,4 +76,18 @@ class FriendshipAcceptView(generics.UpdateAPIView):
         return queryset
     
 
+class FriendshipView(
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
+):
     
+    serializer_class=FriendshipRequestSerializer
+    
+    def get_queryset(self):
+        queryset = FriendshipRelation.objects.filter(
+            Q(user_sender=self.request.user)|Q(user_reciever=self.request.user),
+            accept=True,
+        ).select_related('user_sender', 'user_reciever')
+        return queryset

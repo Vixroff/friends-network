@@ -35,10 +35,17 @@ class FriendshipRequestSerializer(serializers.ModelSerializer):
         return attrs
     
     def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['user_sender'] = UserSerializer(instance.user_sender).data
-        representation['user_reciever'] = UserSerializer(instance.user_reciever).data
-        return representation
+        representation = {
+            'id': instance.id,
+            'friend_sender': UserSerializer(instance.user_sender).data,
+            'friend_reciever': UserSerializer(instance.user_reciever).data,
+            'status': 'Friends' if instance.accept is True else \
+                'Waiting response' if instance.accept is None else \
+                'Rejected',
+            'updated_at': instance.updated_at,
+            'created_at': instance.created_at,     
+        }
+        return representation 
 
 
 class FriendshipAcceptSerializer(serializers.ModelSerializer):
