@@ -83,7 +83,7 @@ class FriendshipAcceptSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = {
             'id': instance.id,
-            'friend': UserSerializer(instance.user_sender),
+            'friend': UserSerializer(instance.user_sender).data,
             'friendship': 'Accepted' if instance.accept is True else 'Rejected',
         }
         return representation
