@@ -62,8 +62,7 @@ class FriendshipRequestSerializer(serializers.ModelSerializer):
             'status': 'Friends' if instance.accept is True else \
                 'Waiting response' if instance.accept is None else \
                 'Rejected',
-            'updated_at': instance.updated_at,
-            'created_at': instance.created_at,     
+            'request_created_at': instance.created_at,     
         }
         return representation 
 
@@ -78,13 +77,21 @@ class FriendshipAcceptSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FriendshipRelation
-        fields = ('accept',)
+        fields = ('user_recipient', 'accept')
+        read_only_fields = ('user_recipient',)
+    
+    def validate(self, attrs):
+        if self.context['request'].user != self.instance.user_recipient:
+            raise ValidationError('Only recipient can accept or reject friendship!')
+        return attrs
 
     def to_representation(self, instance):
         representation = {
             'id': instance.id,
-            'friend': UserSerializer(instance.user_sender).data,
+            'friend_sender': UserSerializer(instance.user_sender).data,
+            'friend_recipient': UserSerializer(instance.user_recipient).data,
             'friendship': 'Accepted' if instance.accept is True else 'Rejected',
+            'response_at': instance.updated_at,
         }
         return representation
 

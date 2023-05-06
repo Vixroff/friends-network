@@ -20,8 +20,10 @@ class RegistrationView(generics.CreateAPIView):
 
 
 class FriendshipRequestView(
-    generics.ListAPIView,
-    generics.CreateAPIView,
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
 ):
     """View provides retrieve a list of friendship request objects and create friendship request."""
 
@@ -69,10 +71,9 @@ class FriendshipAcceptView(generics.UpdateAPIView):
     serializer_class = FriendshipAcceptSerializer
 
     def get_queryset(self):
-        queryset = FriendshipRelation.objects.filter(
-            user_recipient=self.request.user,
-            accept=None,
-        ).select_related('user_sender')
+        queryset = FriendshipRelation.objects \
+            .filter(accept=None) \
+            .select_related('user_sender', 'user_recipient')
         return queryset
     
 

@@ -15,8 +15,9 @@ from .views import (
 )
 
 
-router = SimpleRouter(trailing_slash=False)
-router.register(r'friendships', FriendshipView, basename='friendships')
+router = SimpleRouter()
+router.register('friendships', FriendshipView, basename='friendships')
+router.register('requests', FriendshipRequestView, basename='requests')
 
 
 urlpatterns = [
@@ -26,7 +27,6 @@ urlpatterns = [
         path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
         path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     ])),
-    path('requests/', FriendshipRequestView.as_view(), name='friendship_requests'),
-    path('requests/<uuid:pk>', FriendshipAcceptView.as_view(), name='accept_friendship'),
     path('', include(router.urls)),
+    path('requests/<uuid:pk>/accept/', FriendshipAcceptView.as_view(), name='friendship-accept'),
 ]

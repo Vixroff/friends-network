@@ -27,8 +27,18 @@ class User(AbstractUser, BaseModel):
 
 
 class FriendshipRelation(BaseModel):
-    user_sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requests_out')
-    user_recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requests_in')
+    user_sender = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='requests_out',
+        db_index=True,
+    )
+    user_recipient = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='requests_in',
+        db_index=True,
+    )
     accept = models.BooleanField(null=True, blank=True, default=None)
 
     class Meta:
