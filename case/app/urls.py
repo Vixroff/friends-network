@@ -28,5 +28,5 @@ urlpatterns = [
     ])),
     path('requests/', FriendshipRequestView.as_view(), name='friendship_requests'),
     path('requests/<uuid:pk>', FriendshipAcceptView.as_view(), name='accept_friendship'),
-    path(include(router.urls))
+    path('', include(router.urls)),
 ]

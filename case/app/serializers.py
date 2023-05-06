@@ -23,8 +23,9 @@ class FriendshipRequestSerializer(serializers.ModelSerializer):
     request_friendship_to_user = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
         write_only=True,
-        source='user_reciever',
+        source='user_recipier',
         label='Friendship request to user',
+        help_text='Pass here id of user to be requested.'
     )
 
     class Meta:
@@ -32,14 +33,14 @@ class FriendshipRequestSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'user_sender',
-            'user_reciever',
+            'user_recipier',
             'created_at',
             'accept',
             'request_friendship_to_user',
         )
         read_only_fields = (
             'user_sender',
-            'user_reciever',
+            'user_recipier',
             'created_at',
             'accept',
         )
@@ -49,7 +50,7 @@ class FriendshipRequestSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
-        if self.context['request'].user == attrs['user_reciever']:
+        if self.context['request'].user == attrs['user_recipier']:
             raise ValidationError('Impossible to make friendship request to yourself!')
         return attrs
     
@@ -57,7 +58,7 @@ class FriendshipRequestSerializer(serializers.ModelSerializer):
         representation = {
             'id': instance.id,
             'friend_sender': UserSerializer(instance.user_sender).data,
-            'friend_reciever': UserSerializer(instance.user_reciever).data,
+            'friend_recipier': UserSerializer(instance.user_recipier).data,
             'status': 'Friends' if instance.accept is True else \
                 'Waiting response' if instance.accept is None else \
                 'Rejected',
@@ -71,6 +72,8 @@ class FriendshipAcceptSerializer(serializers.ModelSerializer):
 
     accept = serializers.BooleanField(
         required=True,
+        label='Friendship accepting',
+        help_text='Accept: true | Reject: false',
     )
 
     class Meta:
