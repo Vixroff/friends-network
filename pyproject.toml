@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Maksim Vikhrov <maxvihr@yandex.ru>"]
 readme = "README.md"
-packages = [{include = "vk_test_case"}]
+packages = [{include = "case"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -15,6 +15,9 @@ django-filter = "^23.2"
 Markdown = "^3.4.3"
 djangorestframework-simplejwt = "^5.2.2"
 
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^6.0.0"
 
 [build-system]
 requires = ["poetry-core"]
