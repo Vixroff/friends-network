@@ -1,12 +1,13 @@
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, viewsets, mixins
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from .models import User, FriendshipRelation
 from .serializers import (
     UserSerializer, 
-    FriendshipRequestSerializer,
+    FriendshipRelationSerializer,
     FriendshipAcceptSerializer,
 )
 
@@ -29,7 +30,8 @@ class FriendshipRequestView(
 
     filter_backends = (SearchFilter,)
     search_fields = ('=user_sender__username', '=user_recipient__username')
-    serializer_class = FriendshipRequestSerializer
+    serializer_class = FriendshipRelationSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         flag_in = 'incoming' in self.request.query_params
@@ -69,6 +71,7 @@ class FriendshipAcceptView(generics.UpdateAPIView):
     """View provides rejecting or accepting incoming friendship request."""
 
     serializer_class = FriendshipAcceptSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = FriendshipRelation.objects \
@@ -84,7 +87,8 @@ class FriendshipView(
     viewsets.GenericViewSet,
 ):
     
-    serializer_class=FriendshipRequestSerializer
+    serializer_class=FriendshipRelationSerializer
+    permission_classes = (IsAuthenticated,)
     
     def get_queryset(self):
         queryset = FriendshipRelation.objects.filter(
@@ -92,3 +96,21 @@ class FriendshipView(
             accept=True,
         ).select_related('user_sender', 'user_recipient')
         return queryset
+
+
+class GetRelationView(
+    generics.RetrieveAPIView,
+):
+    
+    queryset = FriendshipRelation.objects.all()
+    serializer_class = FriendshipRelationSerializer
+    permission_classes = (IsAuthenticated,)
+    
+    def get_object(self):
+        username = self.kwargs.get('username')
+        user = get_object_or_404(User, username=username)
+        relation = self.queryset.filter(
+            Q(user_sender=self.request.user, user_recipient=user)|
+            Q(user_sender=user, user_recipient=self.request.user)
+        ).first()
+        return relation

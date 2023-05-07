@@ -12,6 +12,7 @@ from .views import (
     FriendshipRequestView,
     FriendshipAcceptView,
     FriendshipView,
+    GetRelationView
 )
 
 
@@ -29,4 +30,5 @@ urlpatterns = [
     ])),
     path('', include(router.urls)),
     path('requests/<uuid:pk>/accept/', FriendshipAcceptView.as_view(), name='friendship-accept'),
+    path('relations/<str:username>/', GetRelationView.as_view(), name='relation-detail'),
 ]

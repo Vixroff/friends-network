@@ -18,7 +18,7 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-class FriendshipRequestSerializer(serializers.ModelSerializer):
+class FriendshipRelationSerializer(serializers.ModelSerializer):
 
     request_friendship_to_user = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
@@ -58,11 +58,12 @@ class FriendshipRequestSerializer(serializers.ModelSerializer):
         representation = {
             'id': instance.id,
             'friend_sender': UserSerializer(instance.user_sender).data,
-            'friend_recipier': UserSerializer(instance.user_recipient).data,
+            'friend_recipient': UserSerializer(instance.user_recipient).data,
             'status': 'Friends' if instance.accept is True else \
                 'Waiting response' if instance.accept is None else \
                 'Rejected',
-            'request_created_at': instance.created_at,     
+            'created_at': instance.created_at,
+            'updated_at': instance.updated_at,    
         }
         return representation 
 
@@ -91,7 +92,7 @@ class FriendshipAcceptSerializer(serializers.ModelSerializer):
             'friend_sender': UserSerializer(instance.user_sender).data,
             'friend_recipient': UserSerializer(instance.user_recipient).data,
             'friendship': 'Accepted' if instance.accept is True else 'Rejected',
-            'response_at': instance.updated_at,
+            'updated_at': instance.updated_at,
         }
         return representation
 
