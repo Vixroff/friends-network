@@ -56,10 +56,11 @@ class FriendshipRequestView(
     def perform_create(self, serializer):
         try:
             mutual_request = FriendshipRelation.objects.get(
-                user_sender=self.request.data.get('user_recipient'),
+                user_sender=self.request.data.get('request_friendship_to_user'),
                 user_recipient=self.request.user,
                 accept=None,
             )
+            print('OOOOOOOOOOOO')
         except FriendshipRelation.DoesNotExist:
             serializer.save(user_sender=self.request.user)
         else:
