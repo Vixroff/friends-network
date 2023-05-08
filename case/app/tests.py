@@ -449,45 +449,55 @@ class GetRelationViewTest(BaseViewTest):
             accept=None,
         )
     
-    def get_accepted_relation(self):
+    def test_get_accepted_relation(self):
         """Testing the searching relation with user (friendship case)."""
 
         request = self.factory.get(
-            reverse('relations', kwargs={'username': self.user_objects[0].username}),
+            reverse('relations-detail', kwargs={'username': self.user_objects[0].username}),
             **self.headers,
         )
-        response = GetRelationView.as_view({'get': 'retrieve'})(request, username=self.user_objects[0].username)
+        response = GetRelationView.as_view()(request, username=self.user_objects[0].username)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Friends')
     
-    def get_rejected_relation_with_user(self):
+    def test_get_rejected_relation_with_user(self):
         """Testing the searching relation with user (rejected case)."""
 
         request = self.factory.get(
-            reverse('relations', kwargs={'username': self.user_objects[1].username}),
+            reverse('relations-detail', kwargs={'username': self.user_objects[1].username}),
             **self.headers,
         )
-        response = GetRelationView.as_view({'get': 'retrieve'})(request, username=self.user_objects[1].username)
+        response = GetRelationView.as_view()(request, username=self.user_objects[1].username)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Rejected')
     
-    def get_requested_only_relation_with_user(self):
+    def test_get_requested_only_relation_with_user(self):
         """Testing the searching relation with user (waiting case)."""
 
         request = self.factory.get(
-            reverse('relations', kwargs={'username': self.user_objects[2].username}),
+            reverse('relations-detail', kwargs={'username': self.user_objects[2].username}),
             **self.headers,
         )
-        response = GetRelationView.as_view({'get': 'retrieve'})(request, username=self.user_objects[2].username)
+        response = GetRelationView.as_view()(request, username=self.user_objects[2].username)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['status'], 'Waiting response')
     
-    def get_null_relation_with_user(self):
+    def test_get_null_relation_with_user(self):
         """Testing the searching relation with user (null case)."""
 
         request = self.factory.get(
-            reverse('relations', kwargs={'username': self.user_objects[3].username}),
+            reverse('relations-detail', kwargs={'username': self.user_objects[3].username}),
             **self.headers,
         )
-        response = GetRelationView.as_view({'get': 'retrieve'})(request, username=self.user_objects[3].username)
+        response = GetRelationView.as_view()(request, username=self.user_objects[3].username)
+        self.assertEqual(response.status_code, 204)
+    
+    def test_get_unexisted_user(self):
+        """Testing the searching relation with user (unexisted case)."""
+
+        request = self.factory.get(
+            reverse('relations-detail', kwargs={'username': 'lol'}),
+            **self.headers,
+        )
+        response = GetRelationView.as_view()(request, username='lol')
         self.assertEqual(response.status_code, 404)
