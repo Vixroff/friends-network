@@ -29,6 +29,6 @@ urlpatterns = [
         path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     ])),
     path('', include(router.urls)),
-    path('requests/<uuid:pk>/accept/', FriendshipAcceptView.as_view(), name='friendship-accept'),
-    path('relations/<str:username>/', GetRelationView.as_view(), name='relation-detail'),
+    path('requests/<uuid:pk>/accept/', FriendshipAcceptView.as_view(), name='friendships-accept'),
+    path('relations/<str:username>/', GetRelationView.as_view(), name='relations-detail'),
 ]
