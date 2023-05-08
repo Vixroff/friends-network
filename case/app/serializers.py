@@ -72,7 +72,7 @@ class FriendshipAcceptSerializer(serializers.ModelSerializer):
 
     accept = serializers.BooleanField(
         required=True,
-        label='Friendship accepting',
+        label='Friendship request processing',
         help_text='Accept: true | Reject: false',
     )
 
