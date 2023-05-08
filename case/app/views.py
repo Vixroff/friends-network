@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics, viewsets, mixins
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 
 from .models import User, FriendshipRelation
 from .serializers import (
@@ -60,7 +61,6 @@ class FriendshipRequestView(
                 user_recipient=self.request.user,
                 accept=None,
             )
-            print('OOOOOOOOOOOO')
         except FriendshipRelation.DoesNotExist:
             serializer.save(user_sender=self.request.user)
         else:
@@ -100,12 +100,19 @@ class FriendshipView(
 
 
 class GetRelationView(
-    generics.RetrieveAPIView,
+    generics.GenericAPIView,
 ):
     
     queryset = FriendshipRelation.objects.all()
     serializer_class = FriendshipRelationSerializer
     permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        relation = self.get_object()
+        if relation is not None:
+            serializer = self.get_serializer(relation)
+            return Response(serializer.data)
+        return Response(status=204)
     
     def get_object(self):
         username = self.kwargs.get('username')
