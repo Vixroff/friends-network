@@ -7,7 +7,7 @@ from rest_framework.response import Response
 
 from .models import User, FriendshipRelation
 from .serializers import (
-    UserSerializer, 
+    UserSerializer,
     FriendshipRelationSerializer,
     FriendshipAcceptSerializer,
 )
@@ -15,10 +15,10 @@ from .serializers import (
 
 class RegistrationView(generics.CreateAPIView):
     """View provides User registration."""
-    
+
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes=(AllowAny,)
+    permission_classes = (AllowAny,)
 
 
 class FriendshipRequestView(
@@ -39,21 +39,21 @@ class FriendshipRequestView(
         flag_out = 'outgoing' in self.request.query_params
         if (flag_in and flag_out) or (not flag_in and not flag_out):
             queryset = FriendshipRelation.objects.filter(
-                Q(user_sender=self.request.user)|Q(user_recipient=self.request.user),
+                Q(user_sender=self.request.user) | Q(user_recipient=self.request.user),
                 accept=None
             ).select_related('user_sender', 'user_recipient')
         elif flag_in and not flag_out:
             queryset = FriendshipRelation.objects.filter(
-                user_recipient = self.request.user,
+                user_recipient=self.request.user,
                 accept=None
             ).select_related('user_sender', 'user_recipient')
         elif flag_out and not flag_in:
             queryset = FriendshipRelation.objects.filter(
-                user_sender = self.request.user,
+                user_sender=self.request.user,
                 accept=None
             ).select_related('user_sender', 'user_recipient')
         return queryset
-    
+
     def perform_create(self, serializer):
         try:
             mutual_request = FriendshipRelation.objects.get(
@@ -79,7 +79,7 @@ class FriendshipAcceptView(generics.UpdateAPIView):
             .filter(accept=None) \
             .select_related('user_sender', 'user_recipient')
         return queryset
-    
+
 
 class FriendshipView(
     mixins.ListModelMixin,
@@ -87,13 +87,13 @@ class FriendshipView(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
-    
-    serializer_class=FriendshipRelationSerializer
+
+    serializer_class = FriendshipRelationSerializer
     permission_classes = (IsAuthenticated,)
-    
+
     def get_queryset(self):
         queryset = FriendshipRelation.objects.filter(
-            Q(user_sender=self.request.user)|Q(user_recipient=self.request.user),
+            Q(user_sender=self.request.user) | Q(user_recipient=self.request.user),
             accept=True,
         ).select_related('user_sender', 'user_recipient')
         return queryset
@@ -102,7 +102,7 @@ class FriendshipView(
 class GetRelationView(
     generics.GenericAPIView,
 ):
-    
+
     queryset = FriendshipRelation.objects.all()
     serializer_class = FriendshipRelationSerializer
     permission_classes = (IsAuthenticated,)
@@ -113,12 +113,12 @@ class GetRelationView(
             serializer = self.get_serializer(relation)
             return Response(serializer.data)
         return Response(status=204)
-    
+
     def get_object(self):
         username = self.kwargs.get('username')
         user = get_object_or_404(User, username=username)
         relation = self.queryset.filter(
-            Q(user_sender=self.request.user, user_recipient=user)|
+            Q(user_sender=self.request.user, user_recipient=user) |
             Q(user_sender=user, user_recipient=self.request.user)
         ).first()
         return relation

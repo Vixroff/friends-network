@@ -53,19 +53,19 @@ class FriendshipRelationSerializer(serializers.ModelSerializer):
         if self.context['request'].user == attrs['user_recipient']:
             raise ValidationError('Impossible to make friendship request to yourself!')
         return attrs
-    
+
     def to_representation(self, instance):
         representation = {
             'id': instance.id,
             'friend_sender': UserSerializer(instance.user_sender).data,
             'friend_recipient': UserSerializer(instance.user_recipient).data,
-            'status': 'Friends' if instance.accept is True else \
-                'Waiting response' if instance.accept is None else \
+            'status': 'Friends' if instance.accept is True else
+                'Waiting response' if instance.accept is None else  # noqa
                 'Rejected',
             'created_at': instance.created_at,
-            'updated_at': instance.updated_at,    
+            'updated_at': instance.updated_at,
         }
-        return representation 
+        return representation
 
 
 class FriendshipAcceptSerializer(serializers.ModelSerializer):
@@ -80,7 +80,7 @@ class FriendshipAcceptSerializer(serializers.ModelSerializer):
         model = FriendshipRelation
         fields = ('user_recipient', 'accept')
         read_only_fields = ('user_recipient',)
-    
+
     def validate(self, attrs):
         if self.context['request'].user != self.instance.user_recipient:
             raise ValidationError('Only recipient can accept or reject friendship!')
@@ -95,4 +95,3 @@ class FriendshipAcceptSerializer(serializers.ModelSerializer):
             'updated_at': instance.updated_at,
         }
         return representation
-
