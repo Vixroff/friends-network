@@ -290,6 +290,30 @@ class FriendshipRequestReadViewTest(BaseViewTest):
         response = self.view.as_view({'get': 'retrieve'})(request, pk=friendship_request.pk)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['friend_sender']['id'], str(self.test_user.id))
+    
+    def test_unathorized_user_retrieve_friendship_requests(self):
+
+        request = self.factory.get(
+            self.list_url,
+        )
+        response = self.view.as_view({'get': 'list'})(request)
+        self.assertEqual(response.status_code, 401)
+    
+    def test_user_without_permission_cant_retrieve_request(self):
+
+        user = User.objects.create(username='lol')
+        token = RefreshToken.for_user(user).access_token
+        headers = {'HTTP_AUTHORIZATION': f'Bearer {token}'}
+        friendship_request = FriendshipRelation.objects.filter(
+            user_sender=self.test_user,
+            accept=None,
+        ).first()
+        request = self.factory.get(
+            reverse('requests-detail', kwargs={'pk': friendship_request.pk}),
+            **headers,
+        )
+        response = self.view.as_view({'get': 'retrieve'})(request, pk=friendship_request.pk)
+        self.assertEqual(response.status_code, 404)
 
 
 class FriendshipAcceptViewTest(BaseViewTest):
