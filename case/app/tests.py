@@ -11,6 +11,7 @@ from .views import (
     FriendshipViewSet,
     GetRelationView,
 )
+from .serializers import FriendshipStatus
 
 
 class BaseViewTest(TestCase):
@@ -488,7 +489,7 @@ class GetRelationViewTest(BaseViewTest):
         )
         response = GetRelationView.as_view()(request, username=self.user_objects[0].username)
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertEqual(response.data['status'], 'Friends')
+        self.assertEqual(response.data['status'], FriendshipStatus.accepted)
 
     def test_get_rejected_relation_with_user(self):
         """
@@ -501,7 +502,7 @@ class GetRelationViewTest(BaseViewTest):
         )
         response = GetRelationView.as_view()(request, username=self.user_objects[1].username)
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertEqual(response.data['status'], 'Rejected')
+        self.assertEqual(response.data['status'], FriendshipStatus.rejected)
 
     def test_get_requested_only_relation_with_user(self):
         """
@@ -514,7 +515,7 @@ class GetRelationViewTest(BaseViewTest):
         )
         response = GetRelationView.as_view()(request, username=self.user_objects[2].username)
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertEqual(response.data['status'], 'Waiting response')
+        self.assertEqual(response.data['status'], FriendshipStatus.waiting)
 
     def test_get_null_relation_with_user(self):
         """

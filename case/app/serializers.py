@@ -1,7 +1,15 @@
+from enum import Enum
+
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
 
 from .models import User, FriendshipRelation
+
+
+class FriendshipStatus(Enum):
+    accepted = 'Friendship is accepted.'
+    rejected = 'Friendship is rejected.'
+    waiting = 'The request is awaiting a response'
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -59,9 +67,11 @@ class FriendshipRelationSerializer(serializers.ModelSerializer):
             'id': instance.id,
             'friend_sender': UserSerializer(instance.user_sender).data,
             'friend_recipient': UserSerializer(instance.user_recipient).data,
-            'status': 'Friends' if instance.accept_is is True else
-                'Waiting response' if instance.accept_is is None else  # noqa
-                'Rejected',
+            'status': (
+                FriendshipStatus.accepted if instance.accept_is is True else
+                FriendshipStatus.waiting if instance.accept_is is None else
+                FriendshipStatus.rejected
+            ),
             'created_at': instance.created_at,
             'updated_at': instance.updated_at,
         }
@@ -91,7 +101,10 @@ class FriendshipAcceptSerializer(serializers.ModelSerializer):
             'id': instance.id,
             'friend_sender': UserSerializer(instance.user_sender).data,
             'friend_recipient': UserSerializer(instance.user_recipient).data,
-            'friendship': 'Accepted' if instance.accept_is is True else 'Rejected',
+            'friendship': (
+                FriendshipStatus.accepted if instance.accept_is is True else
+                FriendshipStatus.rejected
+            ),
             'updated_at': instance.updated_at,
         }
         return representation
