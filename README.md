@@ -29,9 +29,11 @@ docker compose up --build -d
 docker exec -it app python manage.py migrate
 ```
 
+OpenAPI документация доступна по [адресу](http://127.0.0.1:8000/swagger/) после успешного развертывания приложения.
+
 ---
 
-## **Примеры пользованием API**
+## **Примеры использования API**
 
 Сервис предлагает пользователям следующие функциональные возможности:
 
@@ -43,6 +45,7 @@ docker exec -it app python manage.py migrate
 - [Просмотр списка друзей](#просмотр-списка-друзей)
 - [Удаление из друзей](#удаление-из-друзей)
 - [Получить статус отношений с пользователем](#получить-статус-взаимотношений-с-пользователем)
+
 
 ### **Регистрация пользователей**
 
@@ -121,7 +124,7 @@ HTTP 201 — Запрос на дружбу сформирован.
         "id": "9225404c-ba85-4035-9d1a-a56b08bd92a2",
         "username": "user2"
     },
-    "status": "Waiting response",
+    "status": "The request is awaiting a response.",
     "created_at": "2023-05-08T10:14:29.404134Z",
     "updated_at": "2023-05-08T10:14:29.404171Z"
 }
@@ -142,7 +145,7 @@ HTTP 201 — Запрос на дружбу сформирован.
         "id": "d7bd0e18-7f70-4ad6-b230-b3e0205670c2",
         "username": "user1"
     },
-    "status": "Friends",
+    "status": "Friendship is accepted.",
     "created_at": "2023-05-08T10:14:29.404134Z",
     "updated_at": "2023-05-08T10:20:29.404171Z"
 }
@@ -178,7 +181,7 @@ HTTP 200 — Список запросов на дружбу.
             "id": "9225404c-ba85-4035-9d1a-a56b08bd92a2",
             "username": "user2"
         },
-        "status": "Waiting response",
+        "status": "The request is awaiting a response.",
         "created_at": "2023-05-08T10:23:09.608546Z",
         "updated_at": "2023-05-08T10:23:09.608578Z"
     },
@@ -192,7 +195,7 @@ HTTP 200 — Список запросов на дружбу.
             "id": "902de654-c87c-4114-8e3b-55259e3674bc",
             "username": "user3"
         },
-        "status": "Waiting response",
+        "status": "The request is awaiting a response.",
         "created_at": "2023-05-08T10:33:07.975116Z",
         "updated_at": "2023-05-08T10:33:07.975135Z"
     }
@@ -208,7 +211,7 @@ curl -X PUT "localhost:8000/api/v1/requests/bfc9651a-83e8-4dfb-9f0e-a620e1278093
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjgzNjI4MzAyLCJpYXQiOjE2ODM1NDE5MDIsImp0aSI6ImMyODk4NWYwNGMxOTQ4M2VhNmYwNTViNGJkZjk3ZTIyIiwidXNlcl9pZCI6IjkyMjU0MDRjLWJhODUtNDAzNS05ZDFhLWE1NmIwOGJkOTJhMiJ9.1HeXXzawEnSimfoMRU-eaW14itLePh8QKMwTvTt1qSE" \
 -d "{
-    \"accept\": true
+    \"accept_is\": true
 }"
 ```
 
@@ -231,7 +234,7 @@ HTTP 200 — Запрос принят/отклонен.
         "id": "9225404c-ba85-4035-9d1a-a56b08bd92a2",
         "username": "user2"
     },
-    "friendship": "Accepted",
+    "friendship": "Friendship is accepted.",
     "updated_at": "2023-05-08T10:46:02.066944Z"
 }
 ```
@@ -261,7 +264,7 @@ HTTP 200 — Список друзей
             "id": "9225404c-ba85-4035-9d1a-a56b08bd92a2",
             "username": "user2"
         },
-        "status": "Friends",
+        "status": "Friendship is accepted.",
         "created_at": "2023-05-08T10:23:09.608546Z",
         "updated_at": "2023-05-08T10:46:02.066944Z"
     }
@@ -309,7 +312,7 @@ HTTP 404 — Пользователя не существует.
         "id": "902de654-c87c-4114-8e3b-55259e3674bc",
         "username": "user3"
     },
-    "status": "Rejected",
+    "status": "Friendship is rejected.",
     "created_at": "2023-05-08T10:33:07.975116Z",
     "updated_at": "2023-05-08T10:33:07.975135Z"
 }

@@ -8,7 +8,7 @@ from rest_framework.validators import ValidationError
 class FriendshipStatus(Enum):
     accepted = 'Friendship is accepted.'
     rejected = 'Friendship is rejected.'
-    waiting = 'The request is awaiting a response'
+    waiting = 'The request is awaiting a response.'
 
 
 class UserSerializer(serializers.ModelSerializer):
