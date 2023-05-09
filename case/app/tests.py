@@ -1,19 +1,22 @@
+from http import HTTPStatus
+
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
-
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User, FriendshipRelation
 from .views import (
     RegistrationView,
-    FriendshipRequestView,
-    FriendshipAcceptView,
-    FriendshipView,
+    FriendshipRequestViewSet,
+    FriendshipViewSet,
     GetRelationView,
 )
 
 
 class BaseViewTest(TestCase):
+    """
+    Base test class that contains request factory, registered user and his auth headers.
+    """
 
     @classmethod
     def setUpClass(cls):
@@ -30,6 +33,9 @@ class BaseViewTest(TestCase):
 
 
 class RegistrationViewTest(BaseViewTest):
+    """
+    Testing the capability to register a new users.
+    """
 
     view = RegistrationView
 
@@ -41,7 +47,9 @@ class RegistrationViewTest(BaseViewTest):
         pass
 
     def test_registration(self):
-        """Testing the registration of a new user."""
+        """
+        Registration of a new user.
+        """
 
         user = {
             "username": "user",
@@ -52,12 +60,12 @@ class RegistrationViewTest(BaseViewTest):
             user,
         )
         response = self.view.as_view()(request)
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, HTTPStatus.CREATED)
         self.assertEqual(User.objects.count(), 1)
 
     def test_bad_registration_with_not_unique_username(self):
         """
-        Testing the registration of a new user with username that already exists in database.
+        Registration of a new user with username that already exists in database.
         """
 
         User.objects.create(username='user')
@@ -70,18 +78,18 @@ class RegistrationViewTest(BaseViewTest):
             user
         )
         response = self.view.as_view()(request)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertEqual(User.objects.count(), 1)
 
 
-class FriendshipRequestCreateViewTest(BaseViewTest):
+class FriendshipRequestCreateViewSetTest(BaseViewTest):
     """
     Testing the functionality of creation friendship requests.
     FriendshipRequestView (POST) method.
     """
 
     url = reverse('requests-list')
-    view = FriendshipRequestView
+    view = FriendshipRequestViewSet
 
     @classmethod
     def setUpTestData(cls):
@@ -89,7 +97,9 @@ class FriendshipRequestCreateViewTest(BaseViewTest):
         cls.user1 = User.objects.create(username='user1')
 
     def test_create_friendship_request(self):
-        """Creation friendship request instance."""
+        """
+        Authenticated user is able to request a user for friendship.
+        """
 
         request = self.factory.post(
             self.url,
@@ -98,7 +108,7 @@ class FriendshipRequestCreateViewTest(BaseViewTest):
             **self.headers,
         )
         response = self.view.as_view({'post': 'create'})(request)
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, HTTPStatus.CREATED)
         self.assertEqual(FriendshipRelation.objects.count(), 1)
         self.assertEqual(FriendshipRelation.objects.filter(
             user_sender=self.test_user,
@@ -108,10 +118,10 @@ class FriendshipRequestCreateViewTest(BaseViewTest):
 
     def test_mutual_friendship_request(self):
         """
-        Mutual outgoing friendship request replaces incoming with accept=True(friendship status).
+        Mutual friendship request automatically accepts first one.
         """
 
-        FriendshipRelation.objects.create(
+        relation = FriendshipRelation.objects.create(
             user_sender=self.user1,
             user_recipient=self.test_user,
         )
@@ -122,13 +132,15 @@ class FriendshipRequestCreateViewTest(BaseViewTest):
             **self.headers,
         )
         response = self.view.as_view({'post': 'create'})(request)
-        self.assertEqual(response.status_code, 201)
+        relation.refresh_from_db()
+        self.assertEqual(response.status_code, HTTPStatus.CREATED)
         self.assertEqual(FriendshipRelation.objects.count(), 1)
-        relation = FriendshipRelation.objects.filter(user_sender=self.test_user).first()
         self.assertTrue(relation.accept)
 
     def test_bad_self_friendship_request(self):
-        """Impossible to create a friendship request instance to self user object."""
+        """
+        Authenticated user is not able to request for self friendship.
+        """
 
         request = self.factory.post(
             self.url,
@@ -137,11 +149,13 @@ class FriendshipRequestCreateViewTest(BaseViewTest):
             **self.headers,
         )
         response = self.view.as_view({'post': 'create'})(request)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertEqual(FriendshipRelation.objects.count(), 0)
 
     def test_bad_dublicate_friendship_request(self):
-        """Impossible to create a dublicate friendship request instance."""
+        """
+        Authenticated user is not able to repeat existing friendship request.
+        """
 
         FriendshipRelation.objects.create(
             user_sender=self.test_user,
@@ -154,11 +168,13 @@ class FriendshipRequestCreateViewTest(BaseViewTest):
             **self.headers,
         )
         response = self.view.as_view({'post': 'create'})(request)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertEqual(FriendshipRelation.objects.count(), 1)
 
     def test_bad_unauthorized_user_friendship_request(self):
-        """Anonymous user can't create friendship request."""
+        """
+        Anonymous user is not able to create friendship request.
+        """
 
         request = self.factory.post(
             self.url,
@@ -166,10 +182,12 @@ class FriendshipRequestCreateViewTest(BaseViewTest):
             content_type='application/json',
         )
         response = self.view.as_view({'post': 'create'})(request)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
 
     def test_bad_request_with_sensitive_data_in_body(self):
-        """Incoming extra data in Body doesn't change standart behavior."""
+        """
+        Incoming extra data in body doesn't change standart behavior.
+        """
 
         request = self.factory.post(
             self.url,
@@ -181,7 +199,7 @@ class FriendshipRequestCreateViewTest(BaseViewTest):
             **self.headers,
         )
         response = self.view.as_view({'post': 'create'})(request)
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, HTTPStatus.CREATED)
         self.assertEqual(FriendshipRelation.objects.count(), 1)
         self.assertEqual(FriendshipRelation.objects.filter(
             user_sender=self.test_user,
@@ -190,14 +208,14 @@ class FriendshipRequestCreateViewTest(BaseViewTest):
         ).exists(), True)
 
 
-class FriendshipRequestReadViewTest(BaseViewTest):
+class FriendshipRequestReadViewSetTest(BaseViewTest):
     """
-    Testing a readable functionalities (list, retrieve) of a friendship request resources.
-    FriendshipRequestView (GET) methods.
+    Testing the functionality of reading a friendship request resources.
+    FriendshipRequestView (GET) method.
     """
 
-    view = FriendshipRequestView
-    list_url = reverse('requests-list')
+    view = FriendshipRequestViewSet
+    url = reverse('requests-list')
 
     @classmethod
     def setUpTestData(cls):
@@ -240,31 +258,31 @@ class FriendshipRequestReadViewTest(BaseViewTest):
         )
 
     def test_list_friendship_requests(self):
-        """Testing the retrieving of user's incoming and outgoing friendship requests."""
+        """Testing clean list action."""
 
         request = self.factory.get(
-            self.list_url,
+            self.url,
             **self.headers
         )
         response = self.view.as_view({'get': 'list'})(request)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(len(response.data), 4)
 
     def test_list_with_query_params(self):
-        """Returns filtered at incoming or outgoing friendship requests status."""
+        """Testing clean list action with query params."""
 
         request_in = self.factory.get(
-            self.list_url + '?incoming',
+            self.url + '?incoming',
             **self.headers
         )
         request_out = self.factory.get(
-            self.list_url + '?outgoing',
+            self.url + '?outgoing',
             **self.headers
         )
         response_in = self.view.as_view({'get': 'list'})(request_in)
         response_out = self.view.as_view({'get': 'list'})(request_out)
-        self.assertEqual(response_in.status_code, 200)
-        self.assertEqual(response_out.status_code, 200)
+        self.assertEqual(response_in.status_code, HTTPStatus.OK)
+        self.assertEqual(response_out.status_code, HTTPStatus.OK)
         self.assertEqual(len(response_in.data), 2)
         self.assertEqual(len(response_out.data), 2)
         self.assertEqual(
@@ -275,49 +293,23 @@ class FriendshipRequestReadViewTest(BaseViewTest):
             set([pk['friend_sender']['id'] for pk in response_out.data]),
             set([str(self.test_user.pk)],)
         )
-
-    def test_retrieve_friendship_request(self):
-        """Testing the retrieving of a user's friendship request instance."""
-
-        friendship_request = FriendshipRelation.objects.filter(
-            user_sender=self.test_user,
-            accept=None,
-        ).first()
-        request = self.factory.get(
-            reverse('requests-detail', kwargs={'pk': friendship_request.pk}),
-            **self.headers,
-        )
-        response = self.view.as_view({'get': 'retrieve'})(request, pk=friendship_request.pk)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['friend_sender']['id'], str(self.test_user.id))
-
-    def test_unathorized_user_retrieve_friendship_requests(self):
+    
+    def test_bad_unauthorized_user_cant_list_friendship_requests(self):
+        """Unauthorized user cant read any friendship requests."""
 
         request = self.factory.get(
-            self.list_url,
+            self.url,
         )
         response = self.view.as_view({'get': 'list'})(request)
-        self.assertEqual(response.status_code, 401)
-
-    def test_user_without_permission_cant_retrieve_request(self):
-
-        user = User.objects.create(username='lol')
-        token = RefreshToken.for_user(user).access_token
-        headers = {'HTTP_AUTHORIZATION': f'Bearer {token}'}
-        friendship_request = FriendshipRelation.objects.filter(
-            user_sender=self.test_user,
-            accept=None,
-        ).first()
-        request = self.factory.get(
-            reverse('requests-detail', kwargs={'pk': friendship_request.pk}),
-            **headers,
-        )
-        response = self.view.as_view({'get': 'retrieve'})(request, pk=friendship_request.pk)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
 
 
-class FriendshipAcceptViewTest(BaseViewTest):
-    """Testing the updating friendship request status."""
+class FriendshipRequestUpdateViewSetTest(BaseViewTest):
+    """
+    Testing the capability to update a friendship request status (reject/accept).
+    """
+
+    view = FriendshipRequestViewSet
 
     def setUp(self):
         super().setUp()
@@ -327,56 +319,68 @@ class FriendshipAcceptViewTest(BaseViewTest):
             user_recipient=self.test_user,
         )
 
-    def test_update_friendship_request_status(self):
-        """Recipient accepts friendship request."""
+    def test_accept_friendship_request(self):
+        """
+        User recipient has capability to accept/reject a friendship request.
+        """
 
         request = self.factory.put(
-            reverse('friendships-accept', kwargs={'pk': self.friendship_request.id}),
+            reverse('requests-detail', kwargs={'pk': self.friendship_request.id}),
             {'accept': 'true'},
             content_type='application/json',
             **self.headers,
         )
-        response = FriendshipAcceptView.as_view()(request, pk=self.friendship_request.id)
+        response = self.view.as_view({'put': 'update'})(request, pk=self.friendship_request.id)
         self.friendship_request.refresh_from_db()
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertTrue(self.friendship_request.accept)
 
     def test_bad_sender_updates_friendship_request(self):
-        """Only recipient is allowed to process friendship request."""
+        """
+        User sender is not allowed to update the friendship request status.
+        """
 
         token = RefreshToken.for_user(self.user1).access_token
         headers = {'HTTP_AUTHORIZATION': f'Bearer {token}'}
         request = self.factory.put(
-            reverse('friendships-accept', kwargs={'pk': self.friendship_request.id}),
+            reverse('requests-detail', kwargs={'pk': self.friendship_request.id}),
             {'accept': 'true'},
             content_type='application/json',
             **headers,
         )
-        response = FriendshipAcceptView.as_view()(request, pk=self.friendship_request.id)
-        self.assertEqual(response.status_code, 400)
+        response = self.view.as_view({'put': 'update'})(request, pk=self.friendship_request.id)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertIsNone(self.friendship_request.accept)
 
     def test_bad_anonymous_user_updates_friendship_request(self):
-        """Testing anonymous user is not allowed to process friendship request."""
+        """
+        Anonymous user is not allowed to update a friendship request status.
+        """
 
         request = self.factory.put(
-            reverse('friendships-accept', kwargs={'pk': self.friendship_request.id}),
+            reverse('requests-detail', kwargs={'pk': self.friendship_request.id}),
             {'accept': 'true'},
             content_type='application/json',
         )
-        response = FriendshipAcceptView.as_view()(request, pk=self.friendship_request.id)
-        self.assertEqual(response.status_code, 401)
+        response = self.view.as_view({'put': 'update'})(request, pk=self.friendship_request.id)
+        self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
         self.assertIsNone(self.friendship_request.accept)
 
 
 class FriendshipViewTest(BaseViewTest):
+    """
+    Testing the capabilities to have list and destroy actions with accepted friendships.
+    """
+
+    view = FriendshipViewSet
 
     def setUp(self):
         """
-        Friendships data setup.
+        Friendships dataset setup.
 
-        6 friendship relation objects to cls.test_user.
+        self.test_user has 6 accepted friendships.
         """
+
         super().setUp()
         users = []
         for i in range(1, 7):
@@ -389,18 +393,22 @@ class FriendshipViewTest(BaseViewTest):
         ) for user in user_objects]
 
     def test_list_friendships(self):
-        """Testing the list retrieving of a accepted friendships."""
+        """
+        Authenticated user is able to get all friendships.
+        """
 
         request = self.factory.get(
             reverse('friendships-list'),
             **self.headers,
         )
-        response = FriendshipView.as_view({'get': 'list'})(request)
-        self.assertEqual(response.status_code, 200)
+        response = self.view.as_view({'get': 'list'})(request)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(len(response.data), 6)
 
     def test_list_accepted_only_friendships(self):
-        """Rejected friendship request is not included in result."""
+        """
+        Friendships are only accepted friendship requests.
+        """
 
         user = User.objects.create(username='rejected_user')
         FriendshipRelation.objects.create(
@@ -412,46 +420,42 @@ class FriendshipViewTest(BaseViewTest):
             reverse('friendships-list'),
             **self.headers,
         )
-        response = FriendshipView.as_view({'get': 'list'})(request)
-        self.assertEqual(response.status_code, 200)
+        response = self.view.as_view({'get': 'list'})(request)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(len(response.data), 6)
 
-    def test_retrieve_friendship_instance(self):
-        """Testing the retrieving of a friendship instance."""
-
-        request = self.factory.get(
-            reverse('friendships-detail', kwargs={'pk': self.friendships[0].id}),
-            **self.headers,
-        )
-        response = FriendshipView.as_view({'get': 'retrieve'})(request, pk=self.friendships[0].pk)
-        self.assertEqual(response.status_code, 200)
-
     def test_destroy_friendship_instance(self):
-        """Testing the destroying of a friendship instance."""
+        """
+        Authenticated user is able to delete a friendship.
+        """
 
         request = self.factory.delete(
             reverse('friendships-detail', kwargs={'pk': self.friendships[0].id}),
             **self.headers,
         )
-        response = FriendshipView.as_view({'delete': 'destroy'})(request, pk=self.friendships[0].pk)
-        self.assertEqual(response.status_code, 204)
+        response = self.view.as_view({'delete': 'destroy'})(request, pk=self.friendships[0].pk)
+        self.assertEqual(response.status_code, HTTPStatus.NO_CONTENT)
         self.assertEqual(FriendshipRelation.objects.count(), 5)
 
 
 class GetRelationViewTest(BaseViewTest):
+    """
+    Testing the capability to get relation with user.
+    """
 
     @classmethod
     def setUpTestData(cls):
         """
-        Setup testing data.
+        Relations dataset setup.
 
         5 users: 1 base, 4 extra.
-        3 relations:
-            accepted - self.test_user, user1;
-            rejected - self.test_user, user2;
-            waiting - self.test_user, user3;
-            none - self.test_user, user4;
+        4 relations:
+            Accepted friendship - self.test_user to user1;
+            Rejected friendship - self.test_user to user2;
+            Requested friendship - self.test_user to user3;
+            None - self.test_user and user4;
         """
+
         super().setUpTestData()
         users = []
         for i in range(1, 5):
@@ -474,54 +478,64 @@ class GetRelationViewTest(BaseViewTest):
         )
 
     def test_get_accepted_relation(self):
-        """Testing the searching relation with user (friendship case)."""
+        """
+        Testing the accepted friendship case.
+        """
 
         request = self.factory.get(
             reverse('relations-detail', kwargs={'username': self.user_objects[0].username}),
             **self.headers,
         )
         response = GetRelationView.as_view()(request, username=self.user_objects[0].username)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(response.data['status'], 'Friends')
 
     def test_get_rejected_relation_with_user(self):
-        """Testing the searching relation with user (rejected case)."""
+        """
+        Testing the rejected friendship case.
+        """
 
         request = self.factory.get(
             reverse('relations-detail', kwargs={'username': self.user_objects[1].username}),
             **self.headers,
         )
         response = GetRelationView.as_view()(request, username=self.user_objects[1].username)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(response.data['status'], 'Rejected')
 
     def test_get_requested_only_relation_with_user(self):
-        """Testing the searching relation with user (waiting case)."""
+        """
+        Testing the requested friendship case.
+        """
 
         request = self.factory.get(
             reverse('relations-detail', kwargs={'username': self.user_objects[2].username}),
             **self.headers,
         )
         response = GetRelationView.as_view()(request, username=self.user_objects[2].username)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(response.data['status'], 'Waiting response')
 
     def test_get_null_relation_with_user(self):
-        """Testing the searching relation with user (null case)."""
+        """
+        Testing the unexisted relation case.
+        """
 
         request = self.factory.get(
             reverse('relations-detail', kwargs={'username': self.user_objects[3].username}),
             **self.headers,
         )
         response = GetRelationView.as_view()(request, username=self.user_objects[3].username)
-        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.status_code, HTTPStatus.NO_CONTENT)
 
     def test_get_unexisted_user(self):
-        """Testing the searching relation with user (unexisted case)."""
+        """
+        Testing the unexisted user case..
+        """
 
         request = self.factory.get(
             reverse('relations-detail', kwargs={'username': 'lol'}),
             **self.headers,
         )
         response = GetRelationView.as_view()(request, username='lol')
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)

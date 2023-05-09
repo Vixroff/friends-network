@@ -42,7 +42,7 @@ docker exec -it app python manage.py migrate
 - [Принять/отклонить запрос на дружбу](#принятьотклонить-запрос-на-дружбу)
 - [Просмотр списка друзей](#просмотр-списка-друзей)
 - [Удаление из друзей](#удаление-из-друзей)
-- [Получить статус отношений с пользователем](#получить-статус-отношений-с-пользователем)
+- [Получить статус отношений с пользователем](#получить-статус-взаимотношений-с-пользователем)
 
 ### **Регистрация пользователей**
 
@@ -59,7 +59,7 @@ curl -X POST "localhost:8000/api/v1/auth/registration/" \
 
 **Ответ**
 
-HTTP 201
+HTTP 201 — Пользователь зарегистрирован.
 
 ```
 {
@@ -83,7 +83,7 @@ curl -X POST "localhost:8000/api/v1/auth/token/" \
 
 **Ответ**
 
-HTTP 200
+HTTP 200 — Токены аутентификации.
 
 ```
 {
@@ -97,7 +97,7 @@ HTTP 200
 **Запрос**
 
 ```
-curl -L -X POST "localhost:8000/api/v1/requests/" \
+curl -X POST "localhost:8000/api/v1/requests/" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjgzNjI3MTcwLCJpYXQiOjE2ODM1NDA3NzAsImp0aSI6IjZkMDdjNzI1ZDk2OTQzYWE4OWUxMzhkMGVhOGJkNTQ1IiwidXNlcl9pZCI6ImQ3YmQwZTE4LTdmNzAtNGFkNi1iMjMwLWIzZTAyMDU2NzBjMiJ9.EkJHxcmCBGFBYLyLGBfxBDuqJg6h4SoWRSFvZAVHL30" \
 -d "{
@@ -108,7 +108,7 @@ curl -L -X POST "localhost:8000/api/v1/requests/" \
 
 **Ответ**
 
-HTTP 201
+HTTP 201 — Запрос на дружбу сформирован.
 
 ```
 {
@@ -127,26 +127,28 @@ HTTP 201
 }
 ```
 
-**Ответ в случае обоюдного запроса**
+**Ответ в случае встречного запроса на дружбу**
 
-HTTP 201
+- HTTP 201 — Дружба подтверждена.
 
 ```
 {
-    "id": "bfc9651a-83e8-4dfb-9f0e-a620e1278093",
+    "id": "0e26a5c8-81fa-4d6b-840f-e87ea60e9ab5",
     "friend_sender": {
-        "id": "d7bd0e18-7f70-4ad6-b230-b3e0205670c2",
-        "username": "user1"
-    },
-    "friend_recipient": {
         "id": "9225404c-ba85-4035-9d1a-a56b08bd92a2",
         "username": "user2"
     },
+    "friend_recipient": {
+        "id": "d7bd0e18-7f70-4ad6-b230-b3e0205670c2",
+        "username": "user1"
+    },
     "status": "Friends",
-    "created_at": "2023-05-08T10:23:09.608546Z",
-    "updated_at": "2023-05-08T10:23:09.608578Z"
+    "created_at": "2023-05-08T10:14:29.404134Z",
+    "updated_at": "2023-05-08T10:20:29.404171Z"
 }
 ```
+
+Здесь можно заметить, что произошло автоматическое подтверждение дружбы **{"status": "Friends"}** на первоначально отправленную заявку пользователем user2.
 
 ### **Просмотр входящих и исходящих запросов на дружбу**
 
@@ -156,13 +158,13 @@ HTTP 201
 curl -X GET "localhost:8000/api/v1/requests" \
 -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjgzNjI4MzAyLCJpYXQiOjE2ODM1NDE5MDIsImp0aSI6ImMyODk4NWYwNGMxOTQ4M2VhNmYwNTViNGJkZjk3ZTIyIiwidXNlcl9pZCI6IjkyMjU0MDRjLWJhODUtNDAzNS05ZDFhLWE1NmIwOGJkOTJhMiJ9.1HeXXzawEnSimfoMRU-eaW14itLePh8QKMwTvTt1qSE" \
 ```
-Запрос может включать в URL параметры:
-- incoming - покажет все входящие запросы. (localhost:8000/api/v1/requests?incoming)
-- outgoing - покажет все исходящие запросы. (localhost:8000/api/v1/requests?outgoing)
+Запрос может включать в URL следующие параметры:
+- ?incoming - покажет все входящие запросы. (localhost:8000/api/v1/requests?incoming);
+- ?outgoing - покажет все исходящие запросы. (localhost:8000/api/v1/requests?outgoing);
 
 **Ответ**
 
-HTTP 200
+HTTP 200 — Список запросов на дружбу.
 
 ```
 [
@@ -202,7 +204,7 @@ HTTP 200
 **Запрос**
 
 ```
-curl -L -X PUT "localhost:8000/api/v1/requests/bfc9651a-83e8-4dfb-9f0e-a620e1278093/accept/" \
+curl -X PUT "localhost:8000/api/v1/requests/bfc9651a-83e8-4dfb-9f0e-a620e1278093/" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjgzNjI4MzAyLCJpYXQiOjE2ODM1NDE5MDIsImp0aSI6ImMyODk4NWYwNGMxOTQ4M2VhNmYwNTViNGJkZjk3ZTIyIiwidXNlcl9pZCI6IjkyMjU0MDRjLWJhODUtNDAzNS05ZDFhLWE1NmIwOGJkOTJhMiJ9.1HeXXzawEnSimfoMRU-eaW14itLePh8QKMwTvTt1qSE" \
 -d "{
@@ -210,13 +212,13 @@ curl -L -X PUT "localhost:8000/api/v1/requests/bfc9651a-83e8-4dfb-9f0e-a620e1278
 }"
 ```
 
-Тело запроса включает исключительно boolean type:
-- Принять запрос - true
-- Отклонить - false
+Тело запроса должно содержать boolean type:
+- true - принять дружбу;
+- false - отклонить дружбу;
 
 **Ответ**
 
-HTTP 200
+HTTP 200 — Запрос принят/отклонен.
 
 ```
 {
@@ -245,7 +247,7 @@ curl -X GET "localhost:8000/api/v1/friendships" \
 
 **Ответ**
 
-HTTP 200
+HTTP 200 — Список друзей
 
 ```
 [
@@ -277,9 +279,9 @@ curl -X DELETE "localhost:8000/api/v1/friendships/bfc9651a-83e8-4dfb-9f0e-a620e1
 
 **Ответ**
 
-HTTP 204
+HTTP 204 — Пользователь удален из друей
 
-### **Получить статус отношений с пользователем**
+### **Получить статус взаимотношений с пользователем**
 
 **Запрос**
 
@@ -290,7 +292,11 @@ curl -X GET "localhost:8000/api/v1/relations/user3" \
 
 **Ответ**
 
-HTTP 200 if some relation exists, else HTTP 204
+HTTP 200 — Дружба, заявка в ожидании, запрорс отклонен. 
+
+HTTP 204 — Отношений не найдено.
+
+HTTP 404 — Пользователя не существует.
 
 ```
 {
@@ -303,7 +309,7 @@ HTTP 200 if some relation exists, else HTTP 204
         "id": "902de654-c87c-4114-8e3b-55259e3674bc",
         "username": "user3"
     },
-    "status": "Waiting response",
+    "status": "Rejected",
     "created_at": "2023-05-08T10:33:07.975116Z",
     "updated_at": "2023-05-08T10:33:07.975135Z"
 }
@@ -317,7 +323,7 @@ HTTP 200 if some relation exists, else HTTP 204
 
 **Регистрация**
 - Любой пользователь может зарегистрироваться;
-- Регистрация с не уникальным username недоступна;
+- Регистрация с существующим username недоступна;
 
 **Запросы на дружбу**
 - Зарегистрированный пользователь успешно может отправить запрос на дружбу;
@@ -328,11 +334,9 @@ HTTP 200 if some relation exists, else HTTP 204
 - Дополнительные чувствительные данные не влияют на поведение модели;
 
 **Просмотр запросов на дружбу**
-- Зарегистрированный сможет просмотреть все входящие/исходящие запросы;
-- Зарегистрированный пользователь с помощью добавленных параметров к маршруту запроса сможет разделить входящие/исходящие заявки;
-- Зарегистрированный пользователь сможет просмотреть детально каждую заявку;
+- Зарегистрированный пользователь сможет просмотреть все входящие/исходящие запросы;
+- Зарегистрированный пользователь с помощью добавленных параметров к URL запроса сможет разделить входящие/исходящие заявки;
 - Незарегистрированный пользователь не сможет просмотреть заявки;
-- Зарегистрированный пользователь, не имеющий отношение к заявке, не сможет ее просмотреть;
 
 **Принять/отклонить запрос на дружбу**
 - Пользователь получатель сможет принять/отклонить входящий запрос;
@@ -340,7 +344,7 @@ HTTP 200 if some relation exists, else HTTP 204
 - Незарегистрированный пользователь не сможет просмотреть и повлиять на заявку;
 
 **Просмотр списка друзей**
-- Зарегистрированный пользователь сможет просмотреть список всех подтвержденных дружеских заявок;
+- Зарегистрированный пользователь сможет посмотреть список всех друзей;
 - Необработанные, или отвергнутые запросы не попадут в список подтвержденных дружеских;
 - Зарегистрированный пользователь сможет просмотреть детально каждую подтвержденную дружескую заявку;
 - Зарегистрированный пользователь сможет удалить из друзей пользователя;

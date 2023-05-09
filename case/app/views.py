@@ -5,6 +5,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from .filters import FriendshipRequestInOutFilter
 from .models import User, FriendshipRelation
 from .serializers import (
     UserSerializer,
@@ -21,70 +22,47 @@ class RegistrationView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
 
 
-class FriendshipRequestView(
+class FriendshipRequestViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
     """View provides retrieve a list of friendship request objects and create friendship request."""
 
-    filter_backends = (SearchFilter,)
-    search_fields = ('=user_sender__username', '=user_recipient__username')
-    serializer_class = FriendshipRelationSerializer
+    filter_backends = (FriendshipRequestInOutFilter,)
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        flag_in = 'incoming' in self.request.query_params
-        flag_out = 'outgoing' in self.request.query_params
-        if (flag_in and flag_out) or (not flag_in and not flag_out):
-            queryset = FriendshipRelation.objects.filter(
-                Q(user_sender=self.request.user) | Q(user_recipient=self.request.user),
-                accept=None
-            ).select_related('user_sender', 'user_recipient')
-        elif flag_in and not flag_out:
-            queryset = FriendshipRelation.objects.filter(
-                user_recipient=self.request.user,
-                accept=None
-            ).select_related('user_sender', 'user_recipient')
-        elif flag_out and not flag_in:
-            queryset = FriendshipRelation.objects.filter(
-                user_sender=self.request.user,
-                accept=None
-            ).select_related('user_sender', 'user_recipient')
+        user = self.request.user
+        queryset = FriendshipRelation.objects.filter(
+            Q(user_sender=user) | Q(user_recipient=user),
+            accept=None
+        ).select_related('user_sender', 'user_recipient')
         return queryset
+    
+    def get_serializer_class(self):
+        if self.action == 'update' or self.action == 'partial_update':
+            return FriendshipAcceptSerializer
+        return FriendshipRelationSerializer
 
     def perform_create(self, serializer):
-        try:
-            mutual_request = FriendshipRelation.objects.get(
-                user_sender=self.request.data.get('request_friendship_to_user'),
-                user_recipient=self.request.user,
-                accept=None,
-            )
-        except FriendshipRelation.DoesNotExist:
+        mutual_request = FriendshipRelation.objects.filter(
+            user_sender=self.request.data.get('request_friendship_to_user'),
+            user_recipient=self.request.user,
+            accept=None,
+        ).first()
+        if mutual_request is None:
             serializer.save(user_sender=self.request.user)
         else:
-            mutual_request.delete()
-            serializer.save(user_sender=self.request.user, accept=True)
+            mutual_request.accept = True
+            mutual_request.save()
+            serializer.instance = mutual_request
 
 
-class FriendshipAcceptView(generics.UpdateAPIView):
-    """View provides rejecting or accepting incoming friendship request."""
-
-    serializer_class = FriendshipAcceptSerializer
-    permission_classes = (IsAuthenticated,)
-
-    def get_queryset(self):
-        queryset = FriendshipRelation.objects \
-            .filter(accept=None) \
-            .select_related('user_sender', 'user_recipient')
-        return queryset
-
-
-class FriendshipView(
+class FriendshipViewSet(
     mixins.ListModelMixin,
     mixins.DestroyModelMixin,
-    mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
 
@@ -109,10 +87,10 @@ class GetRelationView(
 
     def get(self, request, *args, **kwargs):
         relation = self.get_object()
-        if relation is not None:
-            serializer = self.get_serializer(relation)
-            return Response(serializer.data)
-        return Response(status=204)
+        if relation is None:
+            return Response(status=204)
+        serializer = self.get_serializer(relation)
+        return Response(serializer.data)
 
     def get_object(self):
         username = self.kwargs.get('username')

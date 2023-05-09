@@ -9,16 +9,15 @@ from rest_framework_simplejwt.views import (
 
 from .views import (
     RegistrationView,
-    FriendshipRequestView,
-    FriendshipAcceptView,
-    FriendshipView,
+    FriendshipRequestViewSet,
+    FriendshipViewSet,
     GetRelationView
 )
 
 
 router = SimpleRouter()
-router.register('friendships', FriendshipView, basename='friendships')
-router.register('requests', FriendshipRequestView, basename='requests')
+router.register('friendships', FriendshipViewSet, basename='friendships')
+router.register('requests', FriendshipRequestViewSet, basename='requests')
 
 
 urlpatterns = [
@@ -29,6 +28,5 @@ urlpatterns = [
         path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     ])),
     path('', include(router.urls)),
-    path('requests/<uuid:pk>/accept/', FriendshipAcceptView.as_view(), name='friendships-accept'),
     path('relations/<str:username>/', GetRelationView.as_view(), name='relations-detail'),
 ]
