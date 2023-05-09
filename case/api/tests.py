@@ -1,10 +1,10 @@
 from http import HTTPStatus
 
+from app.models import FriendshipRelation, User
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import FriendshipRelation, User
 from .serializers import FriendshipStatus
 from .views import (FriendshipRequestViewSet, FriendshipViewSet,
                     GetRelationView, RegistrationView)

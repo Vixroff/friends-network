@@ -356,7 +356,7 @@ HTTP 404 — Пользователя не существует.
 
 #### **Запуск тестов**
 ```
-docker exec -it app python manage.py test -v 2
+docker exec -it app python manage.py test
 ```
 
 ---

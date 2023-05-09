@@ -1,5 +1,6 @@
 from http import HTTPStatus
 
+from app.models import FriendshipRelation, User
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, mixins, viewsets
@@ -7,7 +8,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .filters import FriendshipRequestInOutFilter
-from .models import FriendshipRelation, User
 from .serializers import (FriendshipAcceptSerializer,
                           FriendshipRelationSerializer, UserSerializer)
 

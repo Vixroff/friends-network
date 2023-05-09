@@ -1,9 +1,8 @@
 from enum import Enum
 
+from app.models import FriendshipRelation, User
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
-
-from .models import FriendshipRelation, User
 
 
 class FriendshipStatus(Enum):
