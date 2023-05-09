@@ -15,7 +15,7 @@
 **1. Клонирование проекта**
 
 ```
-git clone https://github.com/Vixroff/lol.git
+git clone https://github.com/Vixroff/vk-test-case.git
 ```
 
 **2. Сборка docker контейнеров**
