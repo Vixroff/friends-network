@@ -7,8 +7,8 @@ class FriendshipRequestInOutFilter(BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
-        if 'incoming' in request.query_params and not 'outgoing' in request.query_params:
+        if 'incoming' in request.query_params and 'outgoing' not in request.query_params:
             return queryset.filter(user_recipient=request.user)
-        elif 'outgoing' in request.query_params and not 'incoming' in request.query_params:
+        elif 'outgoing' in request.query_params and 'incoming' not in request.query_params:
             return queryset.filter(user_sender=request.user)
         return queryset

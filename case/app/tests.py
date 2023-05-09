@@ -1,17 +1,13 @@
 from http import HTTPStatus
 
-from django.test import TestCase, RequestFactory
+from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import User, FriendshipRelation
-from .views import (
-    RegistrationView,
-    FriendshipRequestViewSet,
-    FriendshipViewSet,
-    GetRelationView,
-)
+from .models import FriendshipRelation, User
 from .serializers import FriendshipStatus
+from .views import (FriendshipRequestViewSet, FriendshipViewSet,
+                    GetRelationView, RegistrationView)
 
 
 class BaseViewTest(TestCase):
@@ -294,7 +290,7 @@ class FriendshipRequestReadViewSetTest(BaseViewTest):
             set([pk['friend_sender']['id'] for pk in response_out.data]),
             set([str(self.test_user.pk)],)
         )
-    
+
     def test_bad_unauthorized_user_cant_list_friendship_requests(self):
         """Unauthorized user cant read any friendship requests."""
 

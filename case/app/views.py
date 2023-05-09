@@ -2,18 +2,14 @@ from http import HTTPStatus
 
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, viewsets, mixins
-from rest_framework.filters import SearchFilter
+from rest_framework import generics, mixins, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .filters import FriendshipRequestInOutFilter
-from .models import User, FriendshipRelation
-from .serializers import (
-    UserSerializer,
-    FriendshipRelationSerializer,
-    FriendshipAcceptSerializer,
-)
+from .models import FriendshipRelation, User
+from .serializers import (FriendshipAcceptSerializer,
+                          FriendshipRelationSerializer, UserSerializer)
 
 
 class RegistrationView(generics.CreateAPIView):
@@ -46,7 +42,7 @@ class FriendshipRequestViewSet(
             accept_is=None,
         ).select_related('user_sender', 'user_recipient')
         return queryset
-    
+
     def get_serializer_class(self):
         if self.action == 'update' or self.action == 'partial_update':
             return FriendshipAcceptSerializer

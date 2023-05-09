@@ -3,7 +3,7 @@ from enum import Enum
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
 
-from .models import User, FriendshipRelation
+from .models import FriendshipRelation, User
 
 
 class FriendshipStatus(Enum):

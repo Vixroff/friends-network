@@ -1,8 +1,7 @@
-from django.urls import path, include
-from rest_framework.permissions import AllowAny
-from drf_yasg.views import get_schema_view
+from django.urls import include, path
 from drf_yasg import openapi
-
+from drf_yasg.views import get_schema_view
+from rest_framework.permissions import AllowAny
 
 schema_view = get_schema_view(
    openapi.Info(
