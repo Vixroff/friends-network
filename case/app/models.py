@@ -32,14 +32,21 @@ class FriendshipRelation(BaseModel):
         on_delete=models.CASCADE,
         related_name='requests_out',
         db_index=True,
+        verbose_name='Отправитель',
     )
     user_recipient = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='requests_in',
         db_index=True,
+        verbose_name='Получатель',
     )
-    accept = models.BooleanField(null=True, blank=True, default=None)
+    accept_is = models.BooleanField(
+        null=True,
+        blank=True,
+        default=None,
+        verbose_name='Подтверждение'
+    )
 
     class Meta:
         unique_together = ('user_sender', 'user_recipient')

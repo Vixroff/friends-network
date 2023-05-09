@@ -35,18 +35,18 @@ class FriendshipRelationSerializer(serializers.ModelSerializer):
             'user_sender',
             'user_recipient',
             'created_at',
-            'accept',
+            'accept_is',
             'request_friendship_to_user',
         )
         read_only_fields = (
             'user_sender',
             'user_recipient',
             'created_at',
-            'accept',
+            'accept_is',
         )
         extra_kwargs = {
             'user_sender': {'default': serializers.CurrentUserDefault()},
-            'accept': {'default': None},
+            'accept_is': {'default': None},
         }
 
     def validate(self, attrs):
@@ -59,8 +59,8 @@ class FriendshipRelationSerializer(serializers.ModelSerializer):
             'id': instance.id,
             'friend_sender': UserSerializer(instance.user_sender).data,
             'friend_recipient': UserSerializer(instance.user_recipient).data,
-            'status': 'Friends' if instance.accept is True else
-                'Waiting response' if instance.accept is None else  # noqa
+            'status': 'Friends' if instance.accept_is is True else
+                'Waiting response' if instance.accept_is is None else  # noqa
                 'Rejected',
             'created_at': instance.created_at,
             'updated_at': instance.updated_at,
@@ -70,7 +70,7 @@ class FriendshipRelationSerializer(serializers.ModelSerializer):
 
 class FriendshipAcceptSerializer(serializers.ModelSerializer):
 
-    accept = serializers.BooleanField(
+    accept_is = serializers.BooleanField(
         required=True,
         label='Friendship request processing',
         help_text='Accept: true | Reject: false',
@@ -78,7 +78,7 @@ class FriendshipAcceptSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FriendshipRelation
-        fields = ('user_recipient', 'accept')
+        fields = ('user_recipient', 'accept_is')
         read_only_fields = ('user_recipient',)
 
     def validate(self, attrs):
@@ -91,7 +91,7 @@ class FriendshipAcceptSerializer(serializers.ModelSerializer):
             'id': instance.id,
             'friend_sender': UserSerializer(instance.user_sender).data,
             'friend_recipient': UserSerializer(instance.user_recipient).data,
-            'friendship': 'Accepted' if instance.accept is True else 'Rejected',
+            'friendship': 'Accepted' if instance.accept_is is True else 'Rejected',
             'updated_at': instance.updated_at,
         }
         return representation

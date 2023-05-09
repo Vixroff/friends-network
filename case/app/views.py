@@ -43,7 +43,7 @@ class FriendshipRequestViewSet(
         user = self.request.user
         queryset = FriendshipRelation.objects.filter(
             Q(user_sender=user) | Q(user_recipient=user),
-            accept=None,
+            accept_is=None,
         ).select_related('user_sender', 'user_recipient')
         return queryset
     
@@ -56,12 +56,12 @@ class FriendshipRequestViewSet(
         mutual_request = FriendshipRelation.objects.filter(
             user_sender=self.request.data.get('request_friendship_to_user'),
             user_recipient=self.request.user,
-            accept=None,
+            accept_is=None,
         ).first()
         if mutual_request is None:
             serializer.save(user_sender=self.request.user)
         else:
-            mutual_request.accept = True
+            mutual_request.accept_is = True
             mutual_request.save()
             serializer.instance = mutual_request
 
@@ -79,7 +79,7 @@ class FriendshipViewSet(
     def get_queryset(self):
         queryset = FriendshipRelation.objects.filter(
             Q(user_sender=self.request.user) | Q(user_recipient=self.request.user),
-            accept=True,
+            accept_is=True,
         ).select_related('user_sender', 'user_recipient')
         return queryset
 

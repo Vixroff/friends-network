@@ -113,7 +113,7 @@ class FriendshipRequestCreateViewSetTest(BaseViewTest):
         self.assertEqual(FriendshipRelation.objects.filter(
             user_sender=self.test_user,
             user_recipient=self.user1,
-            accept=None,
+            accept_is=None,
         ).exists(), True)
 
     def test_mutual_friendship_request(self):
@@ -135,7 +135,7 @@ class FriendshipRequestCreateViewSetTest(BaseViewTest):
         relation.refresh_from_db()
         self.assertEqual(response.status_code, HTTPStatus.CREATED)
         self.assertEqual(FriendshipRelation.objects.count(), 1)
-        self.assertTrue(relation.accept)
+        self.assertTrue(relation.accept_is)
 
     def test_bad_self_friendship_request(self):
         """
@@ -193,7 +193,7 @@ class FriendshipRequestCreateViewSetTest(BaseViewTest):
             self.url,
             {
                 'request_friendship_to_user': self.user1.id,
-                'accept': 'true'
+                'accept_is': 'true'
             },
             content_type='application/json',
             **self.headers,
@@ -204,7 +204,7 @@ class FriendshipRequestCreateViewSetTest(BaseViewTest):
         self.assertEqual(FriendshipRelation.objects.filter(
             user_sender=self.test_user,
             user_recipient=self.user1,
-            accept=None,
+            accept_is=None,
         ).exists(), True)
 
 
@@ -237,24 +237,24 @@ class FriendshipRequestReadViewSetTest(BaseViewTest):
         incoming = [FriendshipRelation(
             user_sender=user,
             user_recipient=cls.test_user,
-            accept=None
+            accept_is=None,
         ) for user in users_objects[:2]]
         FriendshipRelation.objects.bulk_create(incoming)
         outgoing = [FriendshipRelation(
             user_sender=cls.test_user,
             user_recipient=user,
-            accept=None
+            accept_is=None,
         ) for user in users_objects[2:4]]
         FriendshipRelation.objects.bulk_create(outgoing)
         FriendshipRelation.objects.create(
             user_sender=cls.test_user,
             user_recipient=users_objects[4],
-            accept=False,
+            accept_is=False,
         )
         FriendshipRelation.objects.create(
             user_sender=cls.test_user,
             user_recipient=users_objects[5],
-            accept=True,
+            accept_is=True,
         )
 
     def test_list_friendship_requests(self):
@@ -326,14 +326,14 @@ class FriendshipRequestUpdateViewSetTest(BaseViewTest):
 
         request = self.factory.put(
             reverse('requests-detail', kwargs={'pk': self.friendship_request.id}),
-            {'accept': 'true'},
+            {'accept_is': 'true'},
             content_type='application/json',
             **self.headers,
         )
         response = self.view.as_view({'put': 'update'})(request, pk=self.friendship_request.id)
         self.friendship_request.refresh_from_db()
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertTrue(self.friendship_request.accept)
+        self.assertTrue(self.friendship_request.accept_is)
 
     def test_bad_sender_updates_friendship_request(self):
         """
@@ -344,13 +344,13 @@ class FriendshipRequestUpdateViewSetTest(BaseViewTest):
         headers = {'HTTP_AUTHORIZATION': f'Bearer {token}'}
         request = self.factory.put(
             reverse('requests-detail', kwargs={'pk': self.friendship_request.id}),
-            {'accept': 'true'},
+            {'accept_is': 'true'},
             content_type='application/json',
             **headers,
         )
         response = self.view.as_view({'put': 'update'})(request, pk=self.friendship_request.id)
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
-        self.assertIsNone(self.friendship_request.accept)
+        self.assertIsNone(self.friendship_request.accept_is)
 
     def test_bad_anonymous_user_updates_friendship_request(self):
         """
@@ -359,12 +359,12 @@ class FriendshipRequestUpdateViewSetTest(BaseViewTest):
 
         request = self.factory.put(
             reverse('requests-detail', kwargs={'pk': self.friendship_request.id}),
-            {'accept': 'true'},
+            {'accept_is': 'true'},
             content_type='application/json',
         )
         response = self.view.as_view({'put': 'update'})(request, pk=self.friendship_request.id)
         self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
-        self.assertIsNone(self.friendship_request.accept)
+        self.assertIsNone(self.friendship_request.accept_is)
 
 
 class FriendshipViewTest(BaseViewTest):
@@ -389,7 +389,7 @@ class FriendshipViewTest(BaseViewTest):
         self.friendships = [FriendshipRelation.objects.create(
             user_sender=user,
             user_recipient=self.test_user,
-            accept=True,
+            accept_is=True,
         ) for user in user_objects]
 
     def test_list_friendships(self):
@@ -414,7 +414,7 @@ class FriendshipViewTest(BaseViewTest):
         FriendshipRelation.objects.create(
             user_sender=self.test_user,
             user_recipient=user,
-            accept=False,
+            accept_is=False,
         )
         request = self.factory.get(
             reverse('friendships-list'),
@@ -464,17 +464,17 @@ class GetRelationViewTest(BaseViewTest):
         FriendshipRelation.objects.create(
             user_sender=cls.test_user,
             user_recipient=cls.user_objects[0],
-            accept=True,
+            accept_is=True,
         )
         FriendshipRelation.objects.create(
             user_sender=cls.test_user,
             user_recipient=cls.user_objects[1],
-            accept=False,
+            accept_is=False,
         )
         FriendshipRelation.objects.create(
             user_sender=cls.test_user,
             user_recipient=cls.user_objects[2],
-            accept=None,
+            accept_is=None,
         )
 
     def test_get_accepted_relation(self):
@@ -530,7 +530,7 @@ class GetRelationViewTest(BaseViewTest):
 
     def test_get_unexisted_user(self):
         """
-        Testing the unexisted user case..
+        Testing the unexisted user case.
         """
 
         request = self.factory.get(
