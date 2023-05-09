@@ -20,13 +20,18 @@ router.register('friendships', FriendshipViewSet, basename='friendships')
 router.register('requests', FriendshipRequestViewSet, basename='requests')
 
 
+auth_patterns = [
+    path('registration/', RegistrationView.as_view(), name='registration'),
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+]
+
+
 urlpatterns = [
-    path('auth/', include([
-        path('registration/', RegistrationView.as_view(), name='registration'),
-        path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-        path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-        path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path('v1/', include([
+        path('auth/', include(auth_patterns)),
+        path('', include(router.urls)),
+        path('relations/<str:username>', GetRelationView.as_view(), name='relations-detail'),
     ])),
-    path('', include(router.urls)),
-    path('relations/<str:username>/', GetRelationView.as_view(), name='relations-detail'),
 ]

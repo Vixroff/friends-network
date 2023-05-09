@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, viewsets, mixins
@@ -15,7 +17,9 @@ from .serializers import (
 
 
 class RegistrationView(generics.CreateAPIView):
-    """View provides User registration."""
+    """
+    User registration capability.
+    """
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -28,7 +32,9 @@ class FriendshipRequestViewSet(
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
-    """View provides retrieve a list of friendship request objects and create friendship request."""
+    """
+    Handling of a friendship requests. Create new one, get all, accept/reject incoming.
+    """
 
     filter_backends = (FriendshipRequestInOutFilter,)
     permission_classes = (IsAuthenticated,)
@@ -37,7 +43,7 @@ class FriendshipRequestViewSet(
         user = self.request.user
         queryset = FriendshipRelation.objects.filter(
             Q(user_sender=user) | Q(user_recipient=user),
-            accept=None
+            accept=None,
         ).select_related('user_sender', 'user_recipient')
         return queryset
     
@@ -65,6 +71,7 @@ class FriendshipViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
+    """Handling of a accepted friendships. Get all, delete one."""
 
     serializer_class = FriendshipRelationSerializer
     permission_classes = (IsAuthenticated,)
@@ -80,6 +87,9 @@ class FriendshipViewSet(
 class GetRelationView(
     generics.GenericAPIView,
 ):
+    """
+    Check relation with user by username as URL path parameter.
+    """
 
     queryset = FriendshipRelation.objects.all()
     serializer_class = FriendshipRelationSerializer
@@ -88,7 +98,7 @@ class GetRelationView(
     def get(self, request, *args, **kwargs):
         relation = self.get_object()
         if relation is None:
-            return Response(status=204)
+            return Response(status=HTTPStatus.NO_CONTENT)
         serializer = self.get_serializer(relation)
         return Response(serializer.data)
 

@@ -155,7 +155,7 @@ HTTP 201 — Запрос на дружбу сформирован.
 **Запрос**
 
 ```
-curl -X GET "localhost:8000/api/v1/requests" \
+curl -X GET "localhost:8000/api/v1/requests/" \
 -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjgzNjI4MzAyLCJpYXQiOjE2ODM1NDE5MDIsImp0aSI6ImMyODk4NWYwNGMxOTQ4M2VhNmYwNTViNGJkZjk3ZTIyIiwidXNlcl9pZCI6IjkyMjU0MDRjLWJhODUtNDAzNS05ZDFhLWE1NmIwOGJkOTJhMiJ9.1HeXXzawEnSimfoMRU-eaW14itLePh8QKMwTvTt1qSE" \
 ```
 Запрос может включать в URL следующие параметры:
@@ -241,7 +241,7 @@ HTTP 200 — Запрос принят/отклонен.
 **Запрос**
 
 ```
-curl -X GET "localhost:8000/api/v1/friendships" \
+curl -X GET "localhost:8000/api/v1/friendships/" \
 -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjgzNjI4MzAyLCJpYXQiOjE2ODM1NDE5MDIsImp0aSI6ImMyODk4NWYwNGMxOTQ4M2VhNmYwNTViNGJkZjk3ZTIyIiwidXNlcl9pZCI6IjkyMjU0MDRjLWJhODUtNDAzNS05ZDFhLWE1NmIwOGJkOTJhMiJ9.1HeXXzawEnSimfoMRU-eaW14itLePh8QKMwTvTt1qSE"
 ```
 
