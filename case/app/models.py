@@ -43,7 +43,7 @@ class FriendshipRelation(BaseModel):
         db_index=True,
         verbose_name='Получатель',
     )
-    accept_is = models.BooleanField(
+    is_accepted = models.BooleanField(
         null=True,
         blank=True,
         default=None,

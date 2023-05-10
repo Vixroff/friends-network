@@ -5,6 +5,7 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .enums import FriendshipStatus
 from .serializers import FriendshipStatus
 from .views import (FriendshipRequestViewSet, FriendshipViewSet,
                     GetRelationView, RegistrationView)
@@ -110,8 +111,9 @@ class FriendshipRequestCreateViewSetTest(BaseViewTest):
         self.assertEqual(FriendshipRelation.objects.filter(
             user_sender=self.test_user,
             user_recipient=self.user1,
-            accept_is=None,
+            is_accepted=None,
         ).exists(), True)
+        self.assertEqual(response.data['status'], FriendshipStatus.waiting)
 
     def test_mutual_friendship_request(self):
         """
@@ -132,7 +134,7 @@ class FriendshipRequestCreateViewSetTest(BaseViewTest):
         relation.refresh_from_db()
         self.assertEqual(response.status_code, HTTPStatus.CREATED)
         self.assertEqual(FriendshipRelation.objects.count(), 1)
-        self.assertTrue(relation.accept_is)
+        self.assertTrue(relation.is_accepted)
 
     def test_bad_self_friendship_request(self):
         """
@@ -190,7 +192,7 @@ class FriendshipRequestCreateViewSetTest(BaseViewTest):
             self.url,
             {
                 'request_friendship_to_user': self.user1.id,
-                'accept_is': 'true'
+                'is_accepted': 'true'
             },
             content_type='application/json',
             **self.headers,
@@ -201,7 +203,7 @@ class FriendshipRequestCreateViewSetTest(BaseViewTest):
         self.assertEqual(FriendshipRelation.objects.filter(
             user_sender=self.test_user,
             user_recipient=self.user1,
-            accept_is=None,
+            is_accepted=None,
         ).exists(), True)
 
 
@@ -234,24 +236,24 @@ class FriendshipRequestReadViewSetTest(BaseViewTest):
         incoming = [FriendshipRelation(
             user_sender=user,
             user_recipient=cls.test_user,
-            accept_is=None,
+            is_accepted=None,
         ) for user in users_objects[:2]]
         FriendshipRelation.objects.bulk_create(incoming)
         outgoing = [FriendshipRelation(
             user_sender=cls.test_user,
             user_recipient=user,
-            accept_is=None,
+            is_accepted=None,
         ) for user in users_objects[2:4]]
         FriendshipRelation.objects.bulk_create(outgoing)
         FriendshipRelation.objects.create(
             user_sender=cls.test_user,
             user_recipient=users_objects[4],
-            accept_is=False,
+            is_accepted=False,
         )
         FriendshipRelation.objects.create(
             user_sender=cls.test_user,
             user_recipient=users_objects[5],
-            accept_is=True,
+            is_accepted=True,
         )
 
     def test_list_friendship_requests(self):
@@ -269,11 +271,11 @@ class FriendshipRequestReadViewSetTest(BaseViewTest):
         """Testing clean list action with query params."""
 
         request_in = self.factory.get(
-            self.url + '?incoming',
+            self.url + '?is_incoming=True',
             **self.headers
         )
         request_out = self.factory.get(
-            self.url + '?outgoing',
+            self.url + '?is_outgoing=true',
             **self.headers
         )
         response_in = self.view.as_view({'get': 'list'})(request_in)
@@ -323,14 +325,14 @@ class FriendshipRequestUpdateViewSetTest(BaseViewTest):
 
         request = self.factory.put(
             reverse('requests-detail', kwargs={'pk': self.friendship_request.id}),
-            {'accept_is': 'true'},
+            {'is_accepted': 'true'},
             content_type='application/json',
             **self.headers,
         )
         response = self.view.as_view({'put': 'update'})(request, pk=self.friendship_request.id)
         self.friendship_request.refresh_from_db()
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertTrue(self.friendship_request.accept_is)
+        self.assertTrue(self.friendship_request.is_accepted)
 
     def test_bad_sender_updates_friendship_request(self):
         """
@@ -341,13 +343,13 @@ class FriendshipRequestUpdateViewSetTest(BaseViewTest):
         headers = {'HTTP_AUTHORIZATION': f'Bearer {token}'}
         request = self.factory.put(
             reverse('requests-detail', kwargs={'pk': self.friendship_request.id}),
-            {'accept_is': 'true'},
+            {'is_accepted': 'true'},
             content_type='application/json',
             **headers,
         )
         response = self.view.as_view({'put': 'update'})(request, pk=self.friendship_request.id)
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
-        self.assertIsNone(self.friendship_request.accept_is)
+        self.assertIsNone(self.friendship_request.is_accepted)
 
     def test_bad_anonymous_user_updates_friendship_request(self):
         """
@@ -356,12 +358,12 @@ class FriendshipRequestUpdateViewSetTest(BaseViewTest):
 
         request = self.factory.put(
             reverse('requests-detail', kwargs={'pk': self.friendship_request.id}),
-            {'accept_is': 'true'},
+            {'is_accepted': 'true'},
             content_type='application/json',
         )
         response = self.view.as_view({'put': 'update'})(request, pk=self.friendship_request.id)
         self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
-        self.assertIsNone(self.friendship_request.accept_is)
+        self.assertIsNone(self.friendship_request.is_accepted)
 
 
 class FriendshipViewTest(BaseViewTest):
@@ -386,7 +388,7 @@ class FriendshipViewTest(BaseViewTest):
         self.friendships = [FriendshipRelation.objects.create(
             user_sender=user,
             user_recipient=self.test_user,
-            accept_is=True,
+            is_accepted=True,
         ) for user in user_objects]
 
     def test_list_friendships(self):
@@ -411,7 +413,7 @@ class FriendshipViewTest(BaseViewTest):
         FriendshipRelation.objects.create(
             user_sender=self.test_user,
             user_recipient=user,
-            accept_is=False,
+            is_accepted=False,
         )
         request = self.factory.get(
             reverse('friendships-list'),
@@ -461,17 +463,17 @@ class GetRelationViewTest(BaseViewTest):
         FriendshipRelation.objects.create(
             user_sender=cls.test_user,
             user_recipient=cls.user_objects[0],
-            accept_is=True,
+            is_accepted=True,
         )
         FriendshipRelation.objects.create(
             user_sender=cls.test_user,
             user_recipient=cls.user_objects[1],
-            accept_is=False,
+            is_accepted=False,
         )
         FriendshipRelation.objects.create(
             user_sender=cls.test_user,
             user_recipient=cls.user_objects[2],
-            accept_is=None,
+            is_accepted=None,
         )
 
     def test_get_accepted_relation(self):
@@ -523,7 +525,7 @@ class GetRelationViewTest(BaseViewTest):
             **self.headers,
         )
         response = GetRelationView.as_view()(request, username=self.user_objects[3].username)
-        self.assertEqual(response.status_code, HTTPStatus.NO_CONTENT)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     def test_get_unexisted_user(self):
         """

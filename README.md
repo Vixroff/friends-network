@@ -162,8 +162,8 @@ curl -X GET "localhost:8000/api/v1/requests/" \
 -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjgzNjI4MzAyLCJpYXQiOjE2ODM1NDE5MDIsImp0aSI6ImMyODk4NWYwNGMxOTQ4M2VhNmYwNTViNGJkZjk3ZTIyIiwidXNlcl9pZCI6IjkyMjU0MDRjLWJhODUtNDAzNS05ZDFhLWE1NmIwOGJkOTJhMiJ9.1HeXXzawEnSimfoMRU-eaW14itLePh8QKMwTvTt1qSE" \
 ```
 Запрос может включать в URL следующие параметры:
-- ?incoming - покажет все входящие запросы. (localhost:8000/api/v1/requests?incoming);
-- ?outgoing - покажет все исходящие запросы. (localhost:8000/api/v1/requests?outgoing);
+- **?is_incoming=True** — просмотр только входящих запросов. 
+- **?is_outgoing=True** - просмотр только исходящих запросов. 
 
 **Ответ**
 
@@ -289,17 +289,15 @@ HTTP 204 — Пользователь удален из друей
 **Запрос**
 
 ```
-curl -X GET "localhost:8000/api/v1/relations/user3" \
+curl -X GET "localhost:8000/api/v1/relations/user3/" \
 -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjgzNjI4MzAyLCJpYXQiOjE2ODM1NDE5MDIsImp0aSI6ImMyODk4NWYwNGMxOTQ4M2VhNmYwNTViNGJkZjk3ZTIyIiwidXNlcl9pZCI6IjkyMjU0MDRjLWJhODUtNDAzNS05ZDFhLWE1NmIwOGJkOTJhMiJ9.1HeXXzawEnSimfoMRU-eaW14itLePh8QKMwTvTt1qSE"
 ```
 
 **Ответ**
 
-HTTP 200 — Дружба, заявка в ожидании, запрорс отклонен. 
+HTTP 200 — Дружба, заявка в ожидании, запрорс отклонен.
 
-HTTP 204 — Отношений не найдено.
-
-HTTP 404 — Пользователя не существует.
+HTTP 404 — Отношений не найдено/Пользователя не существует.
 
 ```
 {

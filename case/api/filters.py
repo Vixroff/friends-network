@@ -1,14 +1,17 @@
-from rest_framework.filters import BaseFilterBackend
+from django_filters import rest_framework as filters
 
 
-class FriendshipRequestInOutFilter(BaseFilterBackend):
-    """
-    Filtering friendship requests to incoming or outgoing.
-    """
+class FriendshipRequestFilter(filters.FilterSet):
 
-    def filter_queryset(self, request, queryset, view):
-        if 'incoming' in request.query_params and 'outgoing' not in request.query_params:
-            return queryset.filter(user_recipient=request.user)
-        elif 'outgoing' in request.query_params and 'incoming' not in request.query_params:
-            return queryset.filter(user_sender=request.user)
+    is_incoming = filters.BooleanFilter(method='filter_is_incoming')
+    is_outgoing = filters.BooleanFilter(method='filter_is_outgoing')
+
+    def filter_is_incoming(self, queryset, name, value):
+        if value:
+            return queryset.filter(user_recipient=self.request.user)
+        return queryset
+    
+    def filter_is_outgoing(self, queryset, name, value):
+        if value:
+            return queryset.filter(user_sender=self.request.user)
         return queryset

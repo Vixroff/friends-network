@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "vk-test-case"
+name = "friends-network"
 version = "0.1.0"
 description = ""
 authors = ["Maksim Vikhrov <maxvihr@yandex.ru>"]

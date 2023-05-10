@@ -1,13 +1,12 @@
-from http import HTTPStatus
-
 from app.models import FriendshipRelation, User
 from django.db.models import Q
+from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django_filters import rest_framework as filters
 from rest_framework import generics, mixins, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
 
-from .filters import FriendshipRequestInOutFilter
+from .filters import FriendshipRequestFilter
 from .serializers import (FriendshipAcceptSerializer,
                           FriendshipRelationSerializer, UserSerializer)
 
@@ -32,14 +31,14 @@ class FriendshipRequestViewSet(
     Handling of a friendship requests. Create new one, get all, accept/reject incoming.
     """
 
-    filter_backends = (FriendshipRequestInOutFilter,)
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = FriendshipRequestFilter
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        user = self.request.user
         queryset = FriendshipRelation.objects.filter(
-            Q(user_sender=user) | Q(user_recipient=user),
-            accept_is=None,
+            Q(user_sender=self.request.user) | Q(user_recipient=self.request.user),
+            is_accepted=None,
         ).select_related('user_sender', 'user_recipient')
         return queryset
 
@@ -52,12 +51,12 @@ class FriendshipRequestViewSet(
         mutual_request = FriendshipRelation.objects.filter(
             user_sender=self.request.data.get('request_friendship_to_user'),
             user_recipient=self.request.user,
-            accept_is=None,
+            is_accepted=None,
         ).first()
-        if mutual_request is None:
+        if not mutual_request:
             serializer.save(user_sender=self.request.user)
         else:
-            mutual_request.accept_is = True
+            mutual_request.is_accepted = True
             mutual_request.save()
             serializer.instance = mutual_request
 
@@ -75,13 +74,13 @@ class FriendshipViewSet(
     def get_queryset(self):
         queryset = FriendshipRelation.objects.filter(
             Q(user_sender=self.request.user) | Q(user_recipient=self.request.user),
-            accept_is=True,
+            is_accepted=True,
         ).select_related('user_sender', 'user_recipient')
         return queryset
 
 
 class GetRelationView(
-    generics.GenericAPIView,
+    generics.RetrieveAPIView,
 ):
     """
     Check relation with user by username as URL path parameter.
@@ -91,13 +90,6 @@ class GetRelationView(
     serializer_class = FriendshipRelationSerializer
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request, *args, **kwargs):
-        relation = self.get_object()
-        if relation is None:
-            return Response(status=HTTPStatus.NO_CONTENT)
-        serializer = self.get_serializer(relation)
-        return Response(serializer.data)
-
     def get_object(self):
         username = self.kwargs.get('username')
         user = get_object_or_404(User, username=username)
@@ -105,4 +97,6 @@ class GetRelationView(
             Q(user_sender=self.request.user, user_recipient=user) |
             Q(user_sender=user, user_recipient=self.request.user)
         ).first()
-        return relation
+        if relation:
+            return relation
+        raise Http404

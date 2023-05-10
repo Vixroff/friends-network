@@ -23,6 +23,6 @@ urlpatterns = [
     path('v1/', include([
         path('auth/', include(auth_patterns)),
         path('', include(router.urls)),
-        path('relations/<str:username>', GetRelationView.as_view(), name='relations-detail'),
+        path('relations/<str:username>/', GetRelationView.as_view(), name='relations-detail'),
     ])),
 ]
