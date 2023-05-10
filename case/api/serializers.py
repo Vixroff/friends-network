@@ -1,14 +1,8 @@
-from enum import Enum
-
 from app.models import FriendshipRelation, User
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
 
-
-class FriendshipStatus(Enum):
-    accepted = 'Friendship is accepted.'
-    rejected = 'Friendship is rejected.'
-    waiting = 'The request is awaiting a response.'
+from .enums import FriendshipStatus
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -42,18 +36,18 @@ class FriendshipRelationSerializer(serializers.ModelSerializer):
             'user_sender',
             'user_recipient',
             'created_at',
-            'accept_is',
+            'is_accepted',
             'request_friendship_to_user',
         )
         read_only_fields = (
             'user_sender',
             'user_recipient',
             'created_at',
-            'accept_is',
+            'is_accepted',
         )
         extra_kwargs = {
             'user_sender': {'default': serializers.CurrentUserDefault()},
-            'accept_is': {'default': None},
+            'is_accepted': {'default': None},
         }
 
     def validate(self, attrs):
@@ -67,8 +61,8 @@ class FriendshipRelationSerializer(serializers.ModelSerializer):
             'friend_sender': UserSerializer(instance.user_sender).data,
             'friend_recipient': UserSerializer(instance.user_recipient).data,
             'status': (
-                FriendshipStatus.accepted if instance.accept_is is True else
-                FriendshipStatus.waiting if instance.accept_is is None else
+                FriendshipStatus.accepted if instance.is_accepted is True else
+                FriendshipStatus.waiting if instance.is_accepted is None else
                 FriendshipStatus.rejected
             ),
             'created_at': instance.created_at,
@@ -79,7 +73,7 @@ class FriendshipRelationSerializer(serializers.ModelSerializer):
 
 class FriendshipAcceptSerializer(serializers.ModelSerializer):
 
-    accept_is = serializers.BooleanField(
+    is_accepted = serializers.BooleanField(
         required=True,
         label='Friendship request processing',
         help_text='Accept: true | Reject: false',
@@ -87,7 +81,7 @@ class FriendshipAcceptSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FriendshipRelation
-        fields = ('user_recipient', 'accept_is')
+        fields = ('user_recipient', 'is_accepted')
         read_only_fields = ('user_recipient',)
 
     def validate(self, attrs):
@@ -101,8 +95,8 @@ class FriendshipAcceptSerializer(serializers.ModelSerializer):
             'friend_sender': UserSerializer(instance.user_sender).data,
             'friend_recipient': UserSerializer(instance.user_recipient).data,
             'friendship': (
-                FriendshipStatus.accepted if instance.accept_is is True else
-                FriendshipStatus.rejected
+                FriendshipStatus.accepted if instance.is_accepted is True else
+                FriendshipStatus.rejected,
             ),
             'updated_at': instance.updated_at,
         }
