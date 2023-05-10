@@ -53,12 +53,12 @@ class FriendshipRequestViewSet(
             user_recipient=self.request.user,
             is_accepted=None,
         ).first()
-        if not mutual_request:
-            serializer.save(user_sender=self.request.user)
-        else:
+        if mutual_request:
             mutual_request.is_accepted = True
             mutual_request.save()
             serializer.instance = mutual_request
+        else:
+            serializer.save(user_sender=self.request.user)         
 
 
 class FriendshipViewSet(
