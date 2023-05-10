@@ -58,7 +58,7 @@ class FriendshipRequestViewSet(
             mutual_request.save()
             serializer.instance = mutual_request
         else:
-            serializer.save(user_sender=self.request.user)         
+            serializer.save(user_sender=self.request.user)
 
 
 class FriendshipViewSet(

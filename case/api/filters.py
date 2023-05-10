@@ -10,7 +10,7 @@ class FriendshipRequestFilter(filters.FilterSet):
         if value:
             return queryset.filter(user_recipient=self.request.user)
         return queryset
-    
+
     def filter_is_outgoing(self, queryset, name, value):
         if value:
             return queryset.filter(user_sender=self.request.user)
